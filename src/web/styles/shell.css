@@ -1,0 +1,317 @@
+/* Page frame, header and footer. Values from docs/prototype Main/Personal pages. */
+.page {
+  min-height: 100vh;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.page__inner {
+  box-sizing: border-box;
+  min-height: 100vh;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 24px 32px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.page__main {
+  min-width: 0;
+}
+
+/* Header */
+.hdr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Clawd Sparkles by Icons8 (credit in the footer); its black outline needs the light page, not a dark box. */
+.brand__logo {
+  display: block;
+  width: 36px;
+  height: 36px;
+}
+
+.brand__title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.5;
+  color: var(--c-text-strong);
+}
+
+.sync {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+/* Login needed: the icon and text carry it; the colour only adds weight. */
+.sync--warn {
+  color: var(--c-ops-chip-fg);
+}
+
+.sync__retry {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border: none;
+  border-radius: var(--r-ctl);
+  background: transparent;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sync__retry:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+/* The Sync button stands where the prototype's icon is; pull it in so the text keeps its place. */
+.sync > .sync__retry:first-child {
+  margin-left: -8px;
+  margin-right: -6px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}
+
+/* Search, tabs and language move to the next row together, right-aligned, as in the prototype
+   at 880px; on narrower screens they stack inside this group. */
+.hdr__tools {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px 24px;
+}
+
+.search {
+  flex: 0 1 420px;
+  /* Explicit width so the group's max-content (and so where it wraps) counts the full 420px. */
+  width: 420px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  padding: 0 14px;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+/* The input draws no outline of its own; the whole box carries the focus ring. */
+.search:focus-within {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.search__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: var(--c-text);
+  outline: none;
+  min-height: 42px;
+  padding: 0;
+}
+.search__input:focus-visible {
+  outline: none;
+}
+
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--c-text-muted);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+/* Tabs and language toggle wrap together. */
+.hdr__nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Workspace tabs and language toggle share the segmented look. */
+.seg {
+  display: flex;
+  background: var(--c-sunken);
+  padding: 4px;
+  border-radius: var(--r-lg);
+}
+
+.seg__item {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--r-btn);
+  background: transparent;
+  color: var(--c-text);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.seg__item:hover {
+  color: var(--c-text-strong);
+}
+.seg__item[aria-current='page'],
+.seg__item[aria-pressed='true'] {
+  background: var(--c-text);
+  color: var(--c-on-dark);
+}
+
+.seg__path {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.seg--lang .seg__item {
+  padding: 8px 12px;
+}
+
+/* Footer */
+/* Pushed to the bottom of .page__inner when the list is short. */
+.ftr {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid var(--c-border);
+  font-size: 12.5px;
+  color: var(--c-text-muted);
+}
+
+.ftr__name {
+  font-weight: 500;
+  color: var(--c-text);
+}
+
+.ftr__link {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* Server refused the token (ADR 0032): text and icon, not colour alone. */
+.access-lost {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border-radius: var(--r-card);
+  border: 1px solid var(--c-ops);
+  background: var(--c-ops-chip);
+  color: var(--c-ops-chip-fg);
+}
+.access-lost p {
+  margin: 0;
+}
+.access-lost__title {
+  font-weight: 600;
+}
+.access-lost .access-lost__how {
+  margin-top: 4px;
+  color: var(--c-text);
+}
+.access-lost code {
+  font-size: 12.5px;
+  user-select: all;
+}
+.access-lost .access-lost__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin-top: 10px;
+  color: var(--c-text);
+}
+.access-lost__reconnect {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--c-text);
+  border-radius: var(--r-btn);
+  background: var(--c-text);
+  color: var(--c-on-dark);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.access-lost__reconnect:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.access-lost__copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: 0 2px;
+  padding: 0;
+  vertical-align: middle;
+  border: none;
+  border-radius: var(--r-ctl);
+  background: transparent;
+  color: var(--c-text-muted);
+  cursor: pointer;
+}
+.access-lost__copy:hover {
+  color: var(--c-text);
+}
+
+/* Phone width (NARROW_QUERY in useNarrow.ts): narrower gutters; the search box takes the full row
+ * and drops the shortcut hint, since a phone has no keyboard shortcut. */
+@media (max-width: 600px) {
+  .page__inner {
+    gap: 12px;
+    padding-inline: 16px;
+  }
+  .hdr__tools {
+    justify-content: flex-start;
+  }
+  .search {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  .search .kbd {
+    display: none;
+  }
+}

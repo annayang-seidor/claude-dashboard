@@ -1,0 +1,94 @@
+// Example config for the Claude Code Session Dashboard. Every key is optional; the values below
+// are the defaults (jiraBaseUrl is a sample: it has no default).
+//
+// This file is documentation only, and the server never reads it. To use it:
+//   1. Copy the keys you want to change into a plain JSON file:
+//      - dashboard.config.json (repo root, committed): shared, non-secret settings.
+//      - ~/.claude-dashboard/config.json (this machine): wins key by key over the repo file.
+//   2. Remove every comment: those two files must be strict JSON (no comments, no trailing commas).
+//   3. Restart the dashboard (`dashboard start`). Config is read once, at start.
+// An invalid file or an unknown key stops the server with a message naming the file and key.
+{
+  // Per machine. Terminal that Resume and New session open:
+  //   "iterm"     iTerm2: a new tab in its current window (a new window when it has none).
+  //   "terminal"  Terminal.app: a new window (it has no tab API without Accessibility).
+  // Not supported: Warp, VS Code (no way to run a command), Ghostty, WezTerm, kitty (ADR 0059).
+  "terminal": "iterm",
+
+  // Per machine. One tab per entry, in this order. A session belongs to the workspace whose root
+  // holds the folder it started in (the deepest root wins); a session under no root goes to the
+  // one with "fallback": true (exactly one).
+  //   id               lowercase slug, also the page path (/work)
+  //   label            tab text: one string, or { "en": …, "zh-TW": … }
+  //   root             absolute, or starting with ~/
+  //   kind             "work": Jira inbox and titles, hac env tags, ticket groups, Scratch-only
+  //                    auto-archive. "personal": grouped by repo, every idle session auto-archived.
+  //   autoArchiveDays  idle days before auto-archive moves a session to the trash (1–365);
+  //                    bookmarked sessions are kept
+  "workspaces": [
+    {
+      "id": "work",
+      "label": { "en": "Work", "zh-TW": "工作" },
+      "root": "~/y",
+      "kind": "work",
+      "fallback": false,
+      "autoArchiveDays": 7
+    },
+    {
+      "id": "personal",
+      "label": { "en": "Personal", "zh-TW": "個人" },
+      "root": "~/o",
+      "kind": "personal",
+      "fallback": true,
+      "autoArchiveDays": 14
+    }
+  ],
+
+  // The https Jira site "Open in Jira" links to (<site>/browse/<KEY>). Unset: the button is off.
+  "jiraBaseUrl": "https://example.atlassian.net",
+
+  // The Clean up modal. Keep every range under Claude Code's cleanupPeriodDays (30 unless set
+  // in ~/.claude/settings.json); the server warns at start when one is not.
+  "cleanup": {
+    // Quick ranges in days, 1 to 4 of them.
+    "ranges": [7, 14],
+    // Must be one of "ranges".
+    "defaultRange": 14,
+    // Where the custom date starts, in days back (moved up to cleanupPeriodDays if needed).
+    "customStartDays": 21,
+    // Starting state of the two checkboxes.
+    "keepBookmarked": true,
+    "keepTodo": true
+  },
+
+  // false: nothing is auto-archived, and rows don't show "Moves to trash in N days".
+  "autoArchive": { "enabled": true },
+
+  // Days a deleted session stays in ~/.claude-dashboard/trash before it is purged.
+  "trash": { "retentionDays": 7 },
+
+  // Bookmarked rows warn this many days before Claude Code's own cleanup removes them.
+  "retentionWarnDays": 7,
+
+  // How long the delete toast offers Undo, in milliseconds (1000–60000).
+  "undoMs": 8000,
+
+  // How often the daily jobs (trash purge, auto-archive) check for work not yet done today.
+  "jobs": { "dailyIntervalHours": 6 },
+
+  "jira": {
+    // A background inbox sync runs when the last attempt is this old (5–1440 minutes).
+    "syncIntervalMinutes": 45,
+    // Background syncs run only on these days (0 = Sunday … 6 = Saturday), local hours
+    // [startHour, endHour). Sync on demand runs any time.
+    "syncWindow": { "days": [1, 2, 3, 4, 5], "startHour": 9, "endHour": 19 },
+    // Issues I own or follow changed in the last N days (or since the last sync), never more
+    // than maxDays back.
+    "changedDays": 2,
+    "maxDays": 7,
+    // Mentions look back this many days, 1–7; more overflows one Jira tool result (ADR 0042).
+    "mentionDays": 3,
+    // A cached Jira title is fetched again after this many hours.
+    "titleTtlHours": 24
+  }
+}

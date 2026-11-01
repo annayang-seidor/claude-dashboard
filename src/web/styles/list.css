@@ -1,0 +1,1070 @@
+/* Session list for both pages. Values from docs/prototype Main/Personal pages. */
+
+/* Columns: Work keeps room for the inbox (T14); Personal is one column of at most 900px. */
+.cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+}
+.cols--work .page__main {
+  flex: 999 1 560px;
+}
+.cols--personal .page__main {
+  max-width: 900px;
+  width: 100%;
+}
+/* The error boundary's fallback replaces both columns. */
+.cols > .error-note {
+  flex: 1 1 100%;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.list--personal {
+  gap: 12px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  line-height: 1;
+}
+
+.intro {
+  flex: 1 1 300px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+/* View toggle reuses the header's .seg look with an icon and a 36px target. */
+.seg__item--icon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chips--status {
+  margin-left: auto;
+}
+
+.chip,
+.pill {
+  min-height: 36px;
+  font-size: 13px;
+  line-height: 12px;
+  color: var(--c-text);
+  background: transparent;
+  border: 1px solid var(--c-border-chip);
+  border-radius: var(--r-pill);
+}
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+}
+.chip[aria-pressed='true'] {
+  background: var(--c-surface);
+  border: 1.5px solid var(--c-text);
+  font-weight: 500;
+}
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+}
+.pill[aria-pressed='true'] {
+  background: var(--c-text);
+  color: var(--c-on-dark);
+  border: 1.5px solid var(--c-text);
+  font-weight: 500;
+}
+.pill > svg,
+.seg__item--icon > svg,
+.cleanup-btn > svg {
+  margin-top: 1px;
+}
+.chip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 99px;
+}
+.chip__dot--all {
+  background: var(--c-text);
+}
+.chip__dot--ops {
+  background: var(--c-ops);
+}
+.chip__dot--ticket {
+  background: var(--c-ticket);
+}
+.chip__dot--scratch {
+  background: var(--c-scratch);
+}
+
+.chip__count {
+  opacity: 0.75;
+}
+
+.empty {
+  background: var(--c-surface);
+  border: 1px dashed var(--c-border-chip);
+  border-radius: var(--r-card);
+  padding: 32px;
+  text-align: center;
+  color: var(--c-text-muted);
+}
+
+.error-note {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.error-note p {
+  margin: 0;
+}
+.retry {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: var(--r-btn);
+  border: 1px solid var(--c-border-chip);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.retry:hover {
+  background: var(--c-sunken);
+}
+
+.card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-card);
+  overflow: hidden;
+}
+
+/* Groups */
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.grp__head {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  min-height: 64px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  color: var(--c-text);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.tile {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: var(--r-md);
+  color: var(--c-on-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tile--ops {
+  background: var(--c-ops);
+}
+.tile--ticket {
+  background: var(--c-ticket);
+}
+.tile--scratch {
+  background: var(--c-scratch);
+}
+/* Personal sessions outside a repo: neutral, not Scratch (ADR 0024). */
+.tile--none {
+  background: var(--c-sunken);
+  color: var(--c-text);
+}
+
+.grp__text {
+  flex: 1 1 240px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.grp__title {
+  font-weight: 500;
+  font-size: 15px;
+}
+.grp__key {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  margin-right: 6px;
+}
+.grp__meta {
+  font-size: 12.5px;
+  color: var(--c-text-muted);
+}
+.grp__count {
+  font-size: 12px;
+  color: var(--c-text-muted);
+  min-width: 64px;
+  text-align: right;
+}
+
+.grp__rows {
+  border-top: 1px solid var(--c-border-soft);
+}
+
+.grp__branch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 12px 62px;
+  font-size: 12.5px;
+  color: var(--c-text-muted);
+}
+.grp__branch-name {
+  font-size: 12px;
+}
+
+.new-session {
+  margin-left: auto;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: var(--r-btn);
+  border: 1px dashed #b9b393;
+  background: transparent;
+  color: var(--c-text);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Personal group heads: no wrap, mono repo name, no count column for repos. */
+.grp--personal .grp__head {
+  flex-wrap: nowrap;
+  min-height: 0;
+}
+.grp--personal .grp__text {
+  flex: 1;
+}
+.grp--personal .grp__count {
+  min-width: 0;
+}
+.grp__title--repo {
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+.grp--personal .row:last-child {
+  border-bottom: none;
+}
+
+/* Rows */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px 10px 62px;
+  border-bottom: 1px solid #f1eedc;
+}
+.row--timeline {
+  padding: 10px 16px;
+}
+
+.row__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.row__title {
+  font-size: 14px;
+  color: var(--c-text);
+}
+.row__title[data-done='true'] {
+  color: var(--c-text-muted);
+}
+/* Rename in place: Change ticket's field and note (.menu__field, .menu__note); the [ENV] tag stays
+   beside it. */
+.row__title:has(.rename) {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.rename {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rename__field {
+  width: 100%;
+  min-height: 32px;
+  font-size: 14px;
+}
+.row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 12.5px;
+  color: var(--c-text-muted);
+}
+.row__branch {
+  font-size: 12px;
+  color: var(--c-text-info);
+}
+.row__clock {
+  width: 56px;
+  flex: none;
+  font-size: 12.5px;
+  color: var(--c-text-muted);
+}
+.row__group {
+  font-size: 12.5px;
+  color: var(--c-text-muted);
+}
+
+/* Claude Code's own cleanup is near: text plus icon, never colour alone. */
+.row__warn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--c-ops-chip-fg);
+  font-weight: 500;
+}
+
+.row__group .row__warn {
+  margin-left: 8px;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 3px;
+}
+.swatch--ops {
+  background: var(--c-ops);
+}
+.swatch--ticket {
+  background: var(--c-ticket);
+}
+.swatch--scratch {
+  background: var(--c-scratch);
+}
+
+.key-chip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border-radius: var(--r-xs);
+  padding: 0 6px;
+  margin-right: 6px;
+}
+.key-chip--ops {
+  background: var(--c-ops-chip);
+  color: var(--c-ops-chip-fg);
+}
+.key-chip--ticket {
+  background: var(--c-ticket-chip);
+  color: var(--c-ticket-chip-fg);
+}
+.key-chip--scratch {
+  background: var(--c-scratch-chip);
+  color: var(--c-scratch-chip-fg);
+}
+
+/* [P1] env tag before Ops titles (prototype envStyle). */
+.env-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  border-radius: var(--r-xs);
+  padding: 0 6px;
+  margin-right: 6px;
+  vertical-align: 1px;
+  color: var(--c-text);
+  background: var(--c-sunken);
+}
+.env-tag[data-prod='true'] {
+  font-weight: 700;
+  color: var(--c-ops-chip-fg);
+  background: var(--c-ops-chip);
+}
+
+/* Row ⋯ menu */
+.menu-anchor {
+  flex: none;
+}
+/* Placed by RowMenu (position: fixed) so the card's overflow: hidden does not clip it. */
+.menu-pop {
+  position: fixed;
+  z-index: 10;
+}
+.menu {
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  box-shadow: 0 8px 24px rgb(61 64 91 / 0.14);
+}
+.menu__item {
+  min-height: 36px;
+  padding: 0 10px;
+  border: none;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--c-text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.menu__item:hover,
+.menu__item:focus-visible {
+  background: var(--c-sunken);
+}
+.menu--form {
+  width: 260px;
+  gap: 8px;
+  padding: 12px;
+}
+.menu__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-text);
+}
+.menu__field {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--c-border-chip);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font: inherit;
+  font-size: 13px;
+}
+.menu__note {
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+.menu__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.menu__btn {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--c-border-chip);
+  border-radius: var(--r-btn);
+  background: transparent;
+  color: var(--c-text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.menu__btn--primary {
+  border-color: var(--c-text);
+  background: var(--c-text);
+  color: var(--c-on-dark);
+}
+.menu__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Status select: outline when To do, green when Done (the label text changes too). */
+.status {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+.status__select {
+  width: 98px;
+  height: 36px;
+  padding: 0 26px 0 30px;
+  border-radius: var(--r-md);
+  font: inherit;
+  font-size: 12px;
+  line-height: 34px;
+  appearance: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--c-text);
+  border: 1px solid var(--c-text-muted);
+}
+.status[data-status='done'] .status__select {
+  background: var(--c-ticket-chip);
+  color: var(--c-ticket-chip-fg);
+  border-color: var(--c-ticket);
+}
+/* Same icons as the status tabs; a native <option> can't hold an SVG. */
+.status__icon {
+  position: absolute;
+  left: 11px;
+  pointer-events: none;
+  color: var(--c-text-muted);
+}
+.status__chev {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+  color: var(--c-text-muted);
+}
+.status[data-status='done'] .status__icon,
+.status[data-status='done'] .status__chev {
+  color: var(--c-ticket-chip-fg);
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: var(--r-ctl);
+  border: none;
+  background: transparent;
+  color: var(--c-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-btn--bookmark {
+  border-radius: var(--r-md);
+  padding: 3px 0 0;
+}
+.icon-btn--play {
+  padding: 0 5px 0 8px;
+}
+.icon-btn--delete {
+  padding: 2px 0 0;
+}
+
+/* Resume, Delete and New session stay visible but inert until T7/T8. */
+.icon-btn:disabled,
+.new-session:disabled {
+  cursor: not-allowed;
+}
+/* The button's popover anchor takes its place at the right end of the branch line. */
+.grp__branch > .menu-anchor {
+  margin-left: auto;
+}
+
+/* Timeline */
+.buckets {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.bucket {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bucket__label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-text-muted);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 12.5px;
+  color: var(--c-text-muted);
+  padding: 4px;
+}
+.legend__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Prototype toast; sticky so it stays in view when the row clicked was far down the list. */
+.toast {
+  position: sticky;
+  bottom: 16px;
+  width: fit-content;
+  margin: 16px auto 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 52px;
+  padding: 8px 8px 8px 16px;
+  /* Translucent with a blurred backdrop so it reads lighter over the list. */
+  background: color-mix(in srgb, var(--c-text) 82%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--c-on-dark);
+  border-radius: var(--r-lg);
+  font-size: 14px;
+}
+.toast__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: -8px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--c-on-dark);
+  opacity: 0.7;
+  cursor: pointer;
+}
+.toast__close:hover {
+  opacity: 1;
+}
+.toast__action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--c-text-disabled);
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--c-on-dark);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Clean up button (both toolbars) */
+.cleanup-btn {
+  min-height: 36px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--c-border-chip);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--c-text);
+  font-size: 13px;
+}
+
+/* Clean up modal (prototype) */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgb(61 64 91 / 0.35);
+}
+.modal__box {
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgb(31 33 51 / 0.25);
+}
+.modal__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.modal__heading {
+  flex: 1;
+}
+.modal__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+.modal__sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+.modal__close {
+  border-radius: var(--r-md);
+}
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.btn {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--c-border-chip);
+  border-radius: var(--r-ctl);
+  background: transparent;
+  color: var(--c-text);
+  font-size: 14px;
+}
+.btn--danger {
+  border: none;
+  background: var(--c-ops);
+  color: var(--c-on-dark);
+  font-weight: 500;
+}
+.btn--danger:disabled {
+  background: var(--c-sunken);
+  color: var(--c-text-disabled);
+  cursor: not-allowed;
+}
+
+.cl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cl-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+.cl-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+.cl-date input {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--c-text-muted);
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--c-text);
+  font: inherit;
+  font-size: 13px;
+}
+.cl-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cl-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--c-text);
+  font-size: 14px;
+  text-align: left;
+}
+.cl-check__box {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--c-text-muted);
+  border-radius: var(--r-xs);
+}
+.cl-check__box[data-on='true'] {
+  background: var(--c-text);
+  border-color: var(--c-text);
+}
+.cl-check__box svg {
+  stroke-width: 3;
+}
+.cl-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--c-bg);
+  border-radius: var(--r-lg);
+}
+.cl-preview__summary {
+  font-size: 14px;
+  font-weight: 500;
+}
+/* A long preview scrolls on its own, so Confirm stays in view. */
+.cl-preview__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 40vh;
+  overflow-y: auto;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+}
+.cl-preview__time,
+.cl-preview__kept {
+  color: var(--c-text-muted);
+}
+.cl-preview__kept {
+  font-size: 12.5px;
+}
+
+/* Needs you inbox and FYI (Work left column; prototype Main page) */
+.inbox {
+  flex: 1 1 340px;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.inbox__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.inbox__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+.inbox__badge {
+  background: var(--c-ops);
+  color: var(--c-on-dark);
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: var(--r-pill);
+  padding: 1px 8px;
+}
+.inbox__list,
+.fyi__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-card);
+  overflow: hidden;
+}
+.inbox__item {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--c-border-soft);
+}
+.inbox__item:last-child,
+.fyi__row:last-child {
+  border-bottom: none;
+}
+.inbox__item:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -2px;
+}
+.inbox__tile {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: var(--r-md);
+  color: var(--c-on-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.inbox__tile--assigned {
+  background: var(--c-ticket);
+  padding-left: 2px;
+  box-sizing: border-box;
+}
+.inbox__tile--mention {
+  background: var(--c-ops);
+}
+.inbox__tile--pr {
+  background: var(--c-scratch);
+  color: var(--c-scratch-fg);
+  border-radius: var(--r-btn);
+}
+.inbox__body {
+  flex: 1 1 0%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.inbox__meta {
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+.inbox__key {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+}
+.inbox__reason {
+  font-size: 12.5px;
+  color: var(--c-text);
+}
+.inbox__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.inbox__act {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: var(--r-btn);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.inbox__act--new {
+  border: 1px dashed var(--c-text);
+  background: transparent;
+}
+.inbox__act--resume {
+  border: 1px solid var(--c-border);
+  background: transparent;
+}
+.inbox__jira {
+  box-sizing: border-box;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-btn);
+  border: 1px solid var(--c-border);
+  background: transparent;
+  color: var(--c-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.inbox__jira[aria-disabled='true'] {
+  color: var(--c-text-disabled);
+  cursor: not-allowed;
+}
+.inbox__note {
+  background: var(--c-surface);
+  border: 1px dashed var(--c-border-chip);
+  border-radius: var(--r-card);
+  padding: 20px 16px;
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+.inbox__note--error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.inbox__note--error p {
+  margin: 0;
+}
+
+.fyi {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fyi__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 8px;
+  border: none;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--c-text-muted);
+  font-size: 13px;
+  text-align: left;
+}
+.fyi__chevron {
+  margin-left: auto;
+}
+.fyi__row {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--c-border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12.5px;
+}
+.fyi__key .mono {
+  font-weight: 500;
+}
+.fyi__reason {
+  color: var(--c-text-muted);
+}
+
+/* Phone width (NARROW_QUERY in useNarrow.ts): the title and meta take a line of their own, and the
+ * clock, tags and actions wrap around them. */
+@media (max-width: 600px) {
+  .cols {
+    gap: 12px;
+  }
+  /* Sort tabs first, then Clean up, then the filter chips. */
+  .toolbar .seg {
+    order: -2;
+  }
+  .cols--work .cleanup-btn {
+    order: -1;
+  }
+  .grp__rows .row {
+    flex-wrap: wrap;
+    padding: 10px 12px;
+  }
+  .grp__rows .row__body {
+    flex-basis: 100%;
+  }
+  .grp__count {
+    display: none;
+  }
+  /* Lines up with the rows' 12px padding instead of the desktop 62px indent. */
+  .grp__branch {
+    padding-inline: 12px;
+  }
+  /* Stacked above the list: a rule before and after sets the Jira inbox apart. */
+  .inbox {
+    margin-block: 8px;
+    padding-block: 16px;
+    border-block: 1px solid var(--c-border);
+  }
+}

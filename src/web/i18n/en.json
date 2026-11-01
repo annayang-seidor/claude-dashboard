@@ -1,0 +1,239 @@
+{
+  "app": {
+    "title": "Claude Code sessions",
+    "documentTitle": "{workspace} sessions"
+  },
+  "header": {
+    "jiraSynced": "Jira synced {ago}",
+    "jiraLoginNeeded": "Jira login needed — run claude and /mcp",
+    "jiraRetry": "Sync Jira again",
+    "jiraSyncNow": "Sync Jira now",
+    "jiraNotSynced": "Jira not synced yet",
+    "jiraSyncFailed": "Jira sync failed · showing results from {ago}",
+    "jiraSyncFailedEmpty": "Jira sync failed · no results yet",
+    "jiraSyncReason": {
+      "timeout": "Claude took longer than 2 minutes",
+      "invalid": "Claude's answer did not match the expected format",
+      "failed": "The sync could not run"
+    },
+    "searchLabel": "Search sessions",
+    "searchPlaceholder": {
+      "work": "FA-554, title, or keyword",
+      "personal": "Project, branch, or keyword"
+    },
+    "searchPlaceholderShort": {
+      "work": "Ticket or keyword",
+      "personal": "Project or keyword"
+    },
+    "searchShortcut": "Shortcut: {keys} or /",
+    "workspaceNav": "Workspace",
+    "language": "Language",
+    "languageName": {
+      "zh-TW": "中文（台灣）",
+      "en": "English"
+    },
+    "languageShort": {
+      "zh-TW": "中",
+      "en": "EN"
+    }
+  },
+  "footer": {
+    "madeBy": "Made with passion by {name}",
+    "iconCredit": "Icon: {author}"
+  },
+  "time": {
+    "minutesAgo": "{n} min ago",
+    "hoursAgo": "{n}h ago",
+    "daysAgo": "{n}d ago",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "todayAt": "Today {time}",
+    "yesterdayAt": "Yesterday {time}",
+    "at": "{day} {time}",
+    "todayLower": "today",
+    "todayAtLower": "today {time}",
+    "yesterdayLower": "yesterday",
+    "lastWeekday": "Last {day}",
+    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "justNow": "just now"
+  },
+  "inbox": {
+    "title": "Needs you",
+    "kind": {
+      "assigned": "Newly assigned",
+      "mention": "Mentioned you",
+      "pr": "PR needs fixes"
+    },
+    "notReplied": "not replied",
+    "reason": {
+      "assignedNotStarted": "Assigned to you, not started yet",
+      "pmAskedAfterYou": "PM asked after your last comment",
+      "changesRequested": "Reviewer requested changes before merge"
+    },
+    "reviewComments": "{n} review comments",
+    "sonarIssues": "{n} SonarQube issues",
+    "newSession": "New session",
+    "resumeSession": "Resume session",
+    "openInJira": "Open in Jira",
+    "replyInJira": "Reply in Jira",
+    "fyi": "FYI · {n} need no action from you",
+    "meta": "{kind} · {ago}",
+    "empty": "Nothing needs you right now",
+    "notSynced": "Jira hasn't synced yet. It syncs on weekdays 09:00–19:00.",
+    "syncFailed": "Jira sync failed, so there's nothing to show yet",
+    "openInJiraUnset": "Add jiraBaseUrl to dashboard.config.json to open Jira"
+  },
+  "list": {
+    "sortBy": "Sort by",
+    "byTicket": "By ticket",
+    "timeline": "Timeline",
+    "filterByType": "Filter by type",
+    "filterByStatus": "Filter by status",
+    "type": {
+      "all": "All",
+      "ops": "Ops",
+      "ticket": "Ticket",
+      "scratch": "Scratch"
+    },
+    "statusFilter": {
+      "all": "All statuses",
+      "todo": "To do",
+      "bookmarked": "Bookmarked",
+      "done": "Done"
+    },
+    "cleanUp": "Clean up",
+    "noResults": "No sessions match \"{query}\". Try a ticket number or a word from the title.",
+    "empty": "No sessions here yet.",
+    "loadFailed": "Couldn't load sessions.",
+    "saveFailed": "Couldn't save the change, so it was undone.",
+    "sessionCount": "{n} sessions",
+    "doneCount": "{done}/{total} done",
+    "noBranch": "No branch yet",
+    "noTicket": "no ticket",
+    "noTicketMeta": "No ticket · moves to trash after 7 idle days; bookmark to keep",
+    "noTicketMetaPlain": "No ticket",
+    "releaseDebug": "Release debug",
+    "envDebug": "Cloud environment debug",
+    "localEnvDebug": "Fix local environment",
+    "involves": "involves {keys}",
+    "stages": ["Spec", "Branch", "Coding", "PR", "Review"],
+    "buckets": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "thisWeek": "Earlier this week",
+      "older": "Older"
+    },
+    "trashIn": "Moves to trash in {n} days",
+    "trashInOne": "Moves to trash in 1 day",
+    "trashSoon": "Moves to trash soon",
+    "bookmarkedKept": "Bookmarked, kept",
+    "next": "Next ›",
+    "newSessionForTicket": "New session for this ticket",
+    "newSessionName": "Session name (optional)",
+    "newSessionNameInput": "Session name",
+    "newSessionNameHint": "Leave empty to start without a name.",
+    "newSessionStart": "Start",
+    "legend": {
+      "ops": "Ops: release / environment debug",
+      "ticket": "Ticket work",
+      "scratch": "Scratch: moves to trash after 7 idle days (unless bookmarked)",
+      "scratchPlain": "Scratch: no ticket"
+    }
+  },
+  "row": {
+    "status": "Status",
+    "statusOpen": "To do",
+    "statusDone": "Done",
+    "bookmark": "Bookmark",
+    "bookmarkOn": "Bookmarked, click to remove",
+    "bookmarkOff": "Bookmark for reference",
+    "resume": "Resume",
+    "delete": "Delete",
+    "more": "More actions",
+    "prodSuffix": "(production)",
+    "changeTicket": "Change ticket",
+    "setEnv": "Set environment",
+    "setRelease": "Set release label",
+    "ticketPlaceholder": "e.g. ACME-555",
+    "ticketHint": "Leave empty to use the branch's ticket ({ticket}).",
+    "ticketHintNone": "Leave empty to go back to no ticket.",
+    "ticketInvalid": "Use a ticket key like ACME-555.",
+    "envAuto": "Detected ({env})",
+    "envNone": "None detected",
+    "releasePlaceholder": "e.g. 2026.10 go-live",
+    "releaseHint": "Leave empty to use the environment name.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "envsFailed": "Couldn't load environments.",
+    "rename": "Rename",
+    "copyResume": "Copy resume command",
+    "titleLabel": "Session title",
+    "titleHint": "Leave empty to restore \"{title}\".",
+    "titleTooLong": "Use at most {n} characters."
+  },
+  "personal": {
+    "intro": "Personal projects have no Jira, so sessions are grouped by repo and labeled by branch.",
+    "repoMeta": "{n} sessions · last active {when}",
+    "noRepo": "Outside a repo"
+  },
+  "cleanup": {
+    "title": "Clean up old sessions",
+    "basis": "Based on last activity. Only {root} sessions are affected.",
+    "close": "Close",
+    "olderThan": "Older than",
+    "range": {
+      "day": "1 day",
+      "days": "{n} days",
+      "week": "1 week",
+      "weeks": "{n} weeks",
+      "custom": "Custom date"
+    },
+    "pickDate": "Pick a date",
+    "keepBookmarked": "Keep bookmarked sessions",
+    "keepTodo": "Keep To do sessions",
+    "willDelete": "Will delete {n} session(s)",
+    "noneMatch": "No sessions match these settings",
+    "keptNote": "Bookmarked kept: {ref} · To do kept: {todo}",
+    "cancel": "Cancel",
+    "confirm": "Delete {n} session(s)"
+  },
+  "retention": {
+    "removesIn": "Claude Code removes this in {n} days",
+    "removesInOne": "Claude Code removes this in 1 day",
+    "removesSoon": "Claude Code removes this the next time it starts",
+    "bookmarkNote": "Bookmarks only protect sessions from this dashboard's own cleanup. Claude Code still deletes sessions idle for {n} days."
+  },
+  "error": {
+    "title": "Something went wrong on this page.",
+    "retry": "Try again"
+  },
+  "access": {
+    "lost": "Server restarted — open the new link",
+    "how": "Run {command} in a terminal to open it.",
+    "copy": "Copy command",
+    "copied": "Copied",
+    "reconnect": "Reconnect",
+    "refused": "This tab's link is too old to reconnect. Run the command instead.",
+    "down": "The server isn't running. Start it with dashboard start."
+  },
+  "toast": {
+    "deletedOne": "Deleted \"{title}\"",
+    "deletedMany": "Deleted {n} session(s)",
+    "undo": "Undo",
+    "close": "Close",
+    "resumeGone": "\"{title}\" no longer exists",
+    "launchFailed": "Couldn't open the terminal",
+    "deleteFailed": "Couldn't delete \"{title}\"",
+    "restoreFailed": "Couldn't restore \"{title}\"",
+    "deletedSomeFailed": "Deleted {n} session(s); {failed} couldn't be moved",
+    "deleteManyFailed": "Couldn't delete {n} session(s)",
+    "restoreManyFailed": "Couldn't restore {n} session(s)",
+    "scratchArchived": "{n} scratch sessions moved to trash",
+    "scratchArchivedOne": "1 scratch session moved to trash",
+    "idleArchived": "{n} idle sessions moved to trash",
+    "idleArchivedOne": "1 idle session moved to trash",
+    "copied": "Copied {command}",
+    "copyFailed": "Couldn't copy to the clipboard",
+    "renameFailed": "Couldn't rename \"{title}\""
+  }
+}

@@ -1,0 +1,109 @@
+#!/bin/sh
+# dashboard: start, open and stop the Session Dashboard from a terminal (ADR 0049).
+# Link it onto your PATH: ln -s "$PWD/bin/dashboard" ~/.local/bin/dashboard
+set -eu
+
+PORT=4317
+DIR="$HOME/.claude-dashboard"
+URL_FILE="$DIR/url"
+LOG="$DIR/server.log"
+LABEL=com.annayang.claude-dashboard
+# Follow the symlink on PATH back to the checkout.
+REPO=$(cd "$(dirname "$(realpath "$0")")/.." && pwd)
+
+usage() {
+  cat <<EOF
+Usage: dashboard <command>
+
+  start    Start the server with a new token if it isn't running, then open the page
+  open     Open the page; fails when the server isn't running
+  stop     Stop the server
+  status   Say whether the server is running
+  logs     Follow $LOG
+EOF
+}
+
+up() { curl -s -o /dev/null -m 1 "http://127.0.0.1:$PORT/"; }
+pid() { lsof -tiTCP:"$PORT" -sTCP:LISTEN 2>/dev/null || true; }
+under_launchd() { launchctl print "gui/$(id -u)/$LABEL" >/dev/null 2>&1; }
+
+open_page() {
+  if ! up; then
+    echo "The dashboard isn't running. Start it with: dashboard start" >&2
+    exit 1
+  fi
+  open "$(cat "$URL_FILE")"
+}
+
+start() {
+  if up; then
+    echo "Already running (pid $(pid)); opening the page."
+    open_page
+    return
+  fi
+  [ -f "$REPO/dist/web/index.html" ] || echo "No dist/web: run 'pnpm build' in $REPO first." >&2
+  mkdir -p "$DIR"
+  # The server rewrites the url file once it listens; waiting for it means the link is current.
+  rm -f "$URL_FILE"
+  # Detached, so it outlives this terminal and any Claude session that ran it. Every start makes
+  # a new token; open tabs reconnect with the old one (ADR 0048).
+  (cd "$REPO" && nohup node node_modules/tsx/dist/cli.mjs src/server/index.ts --rotate-token \
+    </dev/null >>"$LOG" 2>&1 &)
+  i=0
+  until up && [ -s "$URL_FILE" ]; do
+    i=$((i + 1))
+    if [ "$i" -gt 60 ]; then
+      echo "The dashboard didn't start within 15 s. See $LOG" >&2
+      exit 1
+    fi
+    sleep 0.25
+  done
+  echo "Started (pid $(pid)). Log: $LOG"
+  open "$(cat "$URL_FILE")"
+}
+
+stop() {
+  p=$(pid)
+  if [ -z "$p" ]; then
+    echo "The dashboard isn't running."
+    return
+  fi
+  if under_launchd; then
+    echo "launchd runs the dashboard and would restart it. Stop it with:" >&2
+    echo "  launchctl bootout gui/$(id -u)/$LABEL" >&2
+    exit 1
+  fi
+  kill $p
+  i=0
+  while [ -n "$(pid)" ]; do
+    i=$((i + 1))
+    if [ "$i" -gt 20 ]; then
+      echo "Pid $p didn't stop within 5 s." >&2
+      exit 1
+    fi
+    sleep 0.25
+  done
+  echo "Stopped."
+}
+
+status() {
+  if up; then
+    echo "Running (pid $(pid)) on http://127.0.0.1:$PORT"
+  else
+    echo "Not running."
+    exit 1
+  fi
+}
+
+case "${1:-}" in
+  start) start ;;
+  open) open_page ;;
+  stop) stop ;;
+  status) status ;;
+  logs) exec tail -f "$LOG" ;;
+  -h | --help | help) usage ;;
+  *)
+    usage >&2
+    exit 2
+    ;;
+esac

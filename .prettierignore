@@ -1,0 +1,6 @@
+dist
+node_modules
+fixtures
+docs
+pnpm-lock.yaml
+CLAUDE.md

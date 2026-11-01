@@ -1,0 +1,239 @@
+{
+  "app": {
+    "title": "Claude Code sessions",
+    "documentTitle": "{workspace} sessions"
+  },
+  "header": {
+    "jiraSynced": "Jira 同步於 {ago}",
+    "jiraLoginNeeded": "需要登入 Jira — 執行 claude 並輸入 /mcp",
+    "jiraRetry": "重新同步 Jira",
+    "jiraSyncNow": "立即同步 Jira",
+    "jiraNotSynced": "Jira 尚未同步",
+    "jiraSyncFailed": "Jira 同步失敗 · 顯示 {ago}的結果",
+    "jiraSyncFailedEmpty": "Jira 同步失敗 · 尚無結果",
+    "jiraSyncReason": {
+      "timeout": "Claude 超過 2 分鐘未回應",
+      "invalid": "Claude 的回覆格式不符",
+      "failed": "無法執行同步"
+    },
+    "searchLabel": "搜尋 session",
+    "searchPlaceholder": {
+      "work": "FA-554、標題、關鍵字",
+      "personal": "專案、branch、關鍵字"
+    },
+    "searchPlaceholderShort": {
+      "work": "Ticket、關鍵字",
+      "personal": "專案、關鍵字"
+    },
+    "searchShortcut": "快捷鍵：{keys} 或 /",
+    "workspaceNav": "工作區",
+    "language": "語言",
+    "languageName": {
+      "zh-TW": "中文（台灣）",
+      "en": "English"
+    },
+    "languageShort": {
+      "zh-TW": "中",
+      "en": "EN"
+    }
+  },
+  "footer": {
+    "madeBy": "本專案由 {name} 用愛與token發電",
+    "iconCredit": "圖示：{author}"
+  },
+  "time": {
+    "minutesAgo": "{n} 分鐘前",
+    "hoursAgo": "{n} 小時前",
+    "daysAgo": "{n} 天前",
+    "today": "今天",
+    "yesterday": "昨天",
+    "todayAt": "今天 {time}",
+    "yesterdayAt": "昨天 {time}",
+    "at": "{day} {time}",
+    "todayLower": "今天",
+    "todayAtLower": "今天 {time}",
+    "yesterdayLower": "昨天",
+    "lastWeekday": "上{day}",
+    "weekdays": ["週日", "週一", "週二", "週三", "週四", "週五", "週六"],
+    "justNow": "剛剛"
+  },
+  "inbox": {
+    "title": "需要你處理",
+    "kind": {
+      "assigned": "新指派",
+      "mention": "留言 @ 你",
+      "pr": "PR 待修"
+    },
+    "notReplied": "尚未回覆",
+    "reason": {
+      "assignedNotStarted": "指派給你，還沒開始",
+      "pmAskedAfterYou": "PM 在你最後一則留言之後提問",
+      "changesRequested": "Reviewer 要求修改後才能 merge"
+    },
+    "reviewComments": "review {n} 則",
+    "sonarIssues": "SonarQube {n} 個 issue",
+    "newSession": "開新 session",
+    "resumeSession": "接續 session",
+    "openInJira": "在 Jira 開啟",
+    "replyInJira": "在 Jira 回覆",
+    "fyi": "FYI · {n} 則不需你動作",
+    "meta": "{kind} · {ago}",
+    "empty": "目前沒有需要你處理的事項",
+    "notSynced": "Jira 尚未同步，平日 09:00–19:00 會自動同步。",
+    "syncFailed": "Jira 同步失敗，目前沒有資料",
+    "openInJiraUnset": "在 dashboard.config.json 設定 jiraBaseUrl 才能開啟 Jira"
+  },
+  "list": {
+    "sortBy": "排列方式",
+    "byTicket": "依 ticket",
+    "timeline": "時間順序",
+    "filterByType": "類別篩選",
+    "filterByStatus": "狀態篩選",
+    "type": {
+      "all": "全部",
+      "ops": "Ops",
+      "ticket": "Ticket",
+      "scratch": "Scratch"
+    },
+    "statusFilter": {
+      "all": "全部狀態",
+      "todo": "未完成",
+      "bookmarked": "參考留存",
+      "done": "已完成"
+    },
+    "cleanUp": "清理",
+    "noResults": "找不到符合「{query}」的 session。試試 ticket 編號或標題裡的詞。",
+    "empty": "這裡還沒有 session。",
+    "loadFailed": "無法載入 sessions。",
+    "saveFailed": "無法儲存變更，已復原。",
+    "sessionCount": "{n} sessions",
+    "doneCount": "{done}/{total} 已完成",
+    "noBranch": "尚未建立 branch",
+    "noTicket": "無對應 ticket",
+    "noTicketMeta": "無 ticket · 7 天未動會移到垃圾桶，參考留存可保留",
+    "noTicketMetaPlain": "無 ticket",
+    "releaseDebug": "Release debug",
+    "envDebug": "Cloud 環境 debug",
+    "localEnvDebug": "修正 local 環境",
+    "involves": "牽涉 {keys}",
+    "stages": ["需求", "Branch", "Coding", "PR", "Review"],
+    "buckets": {
+      "today": "今天",
+      "yesterday": "昨天",
+      "thisWeek": "本週稍早",
+      "older": "更早"
+    },
+    "trashIn": "{n} 天後移到垃圾桶",
+    "trashInOne": "1 天後移到垃圾桶",
+    "trashSoon": "即將移到垃圾桶",
+    "bookmarkedKept": "已留存，會保留",
+    "next": "下一步 ›",
+    "newSessionForTicket": "在此 ticket 開新 session",
+    "newSessionName": "Session 名稱（選填）",
+    "newSessionNameInput": "Session 名稱",
+    "newSessionNameHint": "留空則不命名，直接開始。",
+    "newSessionStart": "開始",
+    "legend": {
+      "ops": "Ops：release / 環境 debug",
+      "ticket": "Ticket 開發",
+      "scratch": "Scratch：7 天未動移到垃圾桶（參考留存除外）",
+      "scratchPlain": "Scratch：無 ticket"
+    }
+  },
+  "row": {
+    "status": "狀態",
+    "statusOpen": "未完成",
+    "statusDone": "已完成",
+    "bookmark": "參考留存",
+    "bookmarkOn": "已留存，點擊取消",
+    "bookmarkOff": "留存為參考",
+    "resume": "Resume",
+    "delete": "刪除",
+    "more": "更多動作",
+    "prodSuffix": "（正式環境）",
+    "changeTicket": "變更 ticket",
+    "setEnv": "設定環境",
+    "setRelease": "設定 release 名稱",
+    "ticketPlaceholder": "例：ACME-555",
+    "ticketHint": "留空則使用分支上的 ticket（{ticket}）。",
+    "ticketHintNone": "留空則回到無 ticket。",
+    "ticketInvalid": "請輸入 ticket 代碼，例如 ACME-555。",
+    "envAuto": "自動偵測（{env}）",
+    "envNone": "未偵測到",
+    "releasePlaceholder": "例如 2026.10 go-live",
+    "releaseHint": "留空則顯示環境名稱。",
+    "save": "儲存",
+    "cancel": "取消",
+    "envsFailed": "無法載入環境清單。",
+    "rename": "重新命名",
+    "copyResume": "複製 resume 指令",
+    "titleLabel": "Session 標題",
+    "titleHint": "留空則恢復為「{title}」。",
+    "titleTooLong": "最多 {n} 個字元。"
+  },
+  "personal": {
+    "intro": "個人專案沒有 Jira，改以 repo 分組；branch 名稱當作每個 session 的標籤。",
+    "repoMeta": "{n} sessions · 最後活動 {when}",
+    "noRepo": "不在 repo 內"
+  },
+  "cleanup": {
+    "title": "清理舊 session",
+    "basis": "依最後活動時間計算，只會清理 {root} 的 session。",
+    "close": "關閉",
+    "olderThan": "清理早於",
+    "range": {
+      "day": "1 天",
+      "days": "{n} 天",
+      "week": "1 週",
+      "weeks": "{n} 週",
+      "custom": "自訂日期"
+    },
+    "pickDate": "選擇日期",
+    "keepBookmarked": "保留書籤 session",
+    "keepTodo": "保留未完成 session",
+    "willDelete": "將刪除 {n} 個 session",
+    "noneMatch": "沒有符合條件的 session",
+    "keptNote": "書籤保留 {ref} · 未完成保留 {todo}",
+    "cancel": "取消",
+    "confirm": "刪除 {n} 個 session"
+  },
+  "retention": {
+    "removesIn": "Claude Code 將在 {n} 天後刪除",
+    "removesInOne": "Claude Code 將在 1 天後刪除",
+    "removesSoon": "Claude Code 下次啟動時會刪除",
+    "bookmarkNote": "參考留存只會避開本 dashboard 自己的清理。Claude Code 仍會刪除 {n} 天未動的 session。"
+  },
+  "error": {
+    "title": "這個頁面發生錯誤。",
+    "retry": "重試"
+  },
+  "access": {
+    "lost": "伺服器已重新啟動 — 請開啟新連結",
+    "how": "在終端機執行 {command} 開啟新連結。",
+    "copy": "複製指令",
+    "copied": "已複製",
+    "reconnect": "重新連線",
+    "refused": "此分頁的連結太舊，無法重新連線，請改用上方指令。",
+    "down": "伺服器沒有在執行，請用 dashboard start 啟動。"
+  },
+  "toast": {
+    "deletedOne": "已刪除「{title}」",
+    "deletedMany": "已刪除 {n} 個 session",
+    "undo": "復原",
+    "close": "關閉",
+    "resumeGone": "「{title}」已不存在",
+    "launchFailed": "無法開啟終端機",
+    "deleteFailed": "無法刪除「{title}」",
+    "restoreFailed": "無法復原「{title}」",
+    "deletedSomeFailed": "已刪除 {n} 個 session，{failed} 個無法移動",
+    "deleteManyFailed": "無法刪除 {n} 個 session",
+    "restoreManyFailed": "無法復原 {n} 個 session",
+    "scratchArchived": "已將 {n} 個 Scratch session 移到垃圾桶",
+    "scratchArchivedOne": "已將 1 個 Scratch session 移到垃圾桶",
+    "idleArchived": "已將 {n} 個閒置 session 移到垃圾桶",
+    "idleArchivedOne": "已將 1 個閒置 session 移到垃圾桶",
+    "copied": "已複製 {command}",
+    "copyFailed": "無法複製到剪貼簿",
+    "renameFailed": "無法重新命名「{title}」"
+  }
+}

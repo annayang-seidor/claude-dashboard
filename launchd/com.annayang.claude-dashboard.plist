@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Starts the dashboard at login (ADR 0003: one process serving the built page).
+  Not installed by the repo: see README.md "Start at login". launchd does not expand ~ or $HOME,
+  and does not load your shell profile (nvm), so every path below is absolute: edit them if your
+  Node version, home folder or checkout location differ.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.annayang.claude-dashboard</string>
+
+  <!-- node + tsx directly, as argv: no shell, no pnpm wrapper. Same as `pnpm start`. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/annayang/.nvm/versions/node/v22.22.0/bin/node</string>
+    <string>/Users/annayang/o/claude-dashboard/node_modules/tsx/dist/cli.mjs</string>
+    <string>src/server/index.ts</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/annayang/o/claude-dashboard</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <!-- Restart after a crash, not after a clean stop; wait 30 s between tries (e.g. port 4317 busy). -->
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+
+  <!-- The link with the token is never printed here; it is in ~/.claude-dashboard/url (ADR 0032). -->
+  <key>StandardOutPath</key>
+  <string>/Users/annayang/.claude-dashboard/server.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/annayang/.claude-dashboard/server.log</string>
+</dict>
+</plist>

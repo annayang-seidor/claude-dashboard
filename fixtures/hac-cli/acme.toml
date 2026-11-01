@@ -1,0 +1,43 @@
+# sanitized version for development fixture
+# Acme — SAP Commerce HAC environments for the hac CLI
+ssl_verify = false
+
+[envs.local]
+url = "https://localhost:9002/hac"
+username = "sample-user_local"
+password = "password_local"
+enable_sql = true
+enable_groovy = true
+# Uncomment to allow writes on this environment:
+allow_sql_commit = true
+allow_groovy_commit = true
+allow_impex_import = true
+
+# Add remote environments like this; keep read_only = true for production.
+# [envs.p1]
+# url = "https://<host>/hac"
+# username = "<user>"
+# password = "<password>"
+# read_only = true
+
+[envs.p1]
+url = "https://backoffice.acme-p2.example.com/hac"
+username = "sample-user_p1"
+password = "password_p1"
+read_only = true
+
+# DEV
+[envs.d3]
+url = "https://backoffice.acme-d3.example.com/hac"
+username = "sample-user_d3"
+password = "password_d3"
+allow_impex_import = true
+allow_groovy_commit = true
+
+# QAS
+[envs.s1]
+url = "https://backoffice.acme-s1.example.com/hac"
+username = "sample-user_s1"
+password = "password_s1"
+allow_impex_import = true
+allow_groovy_commit = true

@@ -1,0 +1,100 @@
+/* Design tokens from docs/prototype (spec § Design tokens). */
+:root {
+  /* Palette */
+  --c-bg: #f4f1de;
+  --c-surface: #fffdf7;
+  --c-sunken: #e9e5cc;
+  --c-border: #dcd7bc;
+  --c-border-soft: #ece8d2;
+  --c-border-chip: #cfc9ab;
+  --c-text: #3d405b;
+  --c-text-strong: #1f2133;
+  --c-text-muted: #5e6178;
+  --c-text-info: #2d92e6;
+  --c-text-disabled: #8c8fa8;
+  --c-on-dark: #f4f1de;
+
+  /* Category tones: tile, text on tile, chip background, chip text */
+  --c-ops: #e07a5f;
+  --c-ops-fg: #2b1a14;
+  --c-ops-chip: #f9ddd4;
+  --c-ops-chip-fg: #8a3a24;
+  --c-ticket: #81b29a;
+  --c-ticket-fg: #1f3a2d;
+  --c-ticket-chip: #dcebe3;
+  --c-ticket-chip-fg: #2f5e4a;
+  --c-scratch: #f2cc8f;
+  --c-scratch-fg: #4a3410;
+  --c-scratch-chip: #fbebcb;
+  --c-scratch-chip-fg: #6b4a12;
+  --c-bookmark-stroke: #b07d2b;
+  --c-play-hover: #e079604d;
+
+  --logo-gradient: linear-gradient(149deg, #90764a 0%, #372615 62%, #5d564f 100%);
+
+  /* Radii */
+  --r-xs: 5px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-btn: 9px;
+  --r-ctl: 10px;
+  --r-lg: 12px;
+  --r-card: 14px;
+  --r-pill: 999px;
+
+  /* Type */
+  --font-sans: 'Noto Sans TC', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --focus-ring: 2px solid var(--c-text);
+}
+
+body {
+  margin: 0;
+  background: var(--c-bg);
+}
+
+a {
+  color: var(--c-text);
+}
+a:hover {
+  color: var(--c-text-strong);
+}
+
+button {
+  font-family: inherit;
+  line-height: inherit;
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Icon button hover (prototype .ib / .ib-play) */
+.ib {
+  transition: background-color 0.15s;
+}
+.ib:hover {
+  background-color: var(--c-sunken) !important;
+}
+.ib-play:hover {
+  background-color: var(--c-play-hover) !important;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
