@@ -27,6 +27,8 @@
     },
     "searchShortcut": "Shortcut: {keys} or /",
     "workspaceNav": "Workspace",
+    "densityCompact": "Switch to compact view",
+    "densityLoose": "Switch to loose view",
     "language": "Language",
     "languageName": {
       "zh-TW": "中文（台灣）",
@@ -89,6 +91,7 @@
     "timeline": "Timeline",
     "filterByType": "Filter by type",
     "filterByStatus": "Filter by status",
+    "filterByProject": "Filter by project",
     "type": {
       "all": "All",
       "ops": "Ops",
@@ -172,9 +175,10 @@
     "titleTooLong": "Use at most {n} characters."
   },
   "personal": {
-    "intro": "Personal projects have no Jira, so sessions are grouped by repo and labeled by branch.",
+    "intro": "Personal projects - grouped by repo",
     "repoMeta": "{n} sessions · last active {when}",
-    "noRepo": "Outside a repo"
+    "noRepo": "Outside a repo",
+    "allProjects": "All projects"
   },
   "cleanup": {
     "title": "Clean up old sessions",

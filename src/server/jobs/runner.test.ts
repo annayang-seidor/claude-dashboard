@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { PassThrough } from 'node:stream';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { ALLOWED_TOOLS, MCP_OUTPUT_TOKENS, createRunner, extractJson, runnerArgv } from './runner';
+import { createRunner, extractJson, runnerArgv } from './runner';
 
 const tmpDirs: string[] = [];
 afterEach(() => {
@@ -92,23 +92,19 @@ function setup(opts: { timeoutMs?: number } = {}) {
 }
 
 describe('runnerArgv', () => {
-  it('runs print mode with no transcript, JSON output, Sonnet 5.5 at low effort and only the Rovo reads', () => {
+  it('runs print mode with no transcript, JSON output, Sonnet 5.5 at low effort and no tools', () => {
     const argv = runnerArgv('hello');
     expect(argv.slice(0, 2)).toEqual(['-p', 'hello']);
     expect(argv).toContain('--no-session-persistence');
     expect(argv.join(' ')).toContain('--output-format json');
-    // --tools would hide the MCP tools as well (ADR 0040).
-    expect(argv).not.toContain('--tools');
+    // The server reads Jira itself: no built-ins, no MCP servers (ADR 0063).
+    expect(argv[argv.indexOf('--tools') + 1]).toBe('');
+    expect(argv).toContain('--strict-mcp-config');
+    expect(argv).not.toContain('--mcp-config');
+    expect(argv).not.toContain('--allowedTools');
     expect(argv[argv.indexOf('--permission-mode') + 1]).toBe('dontAsk');
     expect(argv[argv.indexOf('--model') + 1]).toBe('claude-sonnet-5-5');
     expect(argv[argv.indexOf('--effort') + 1]).toBe('low');
-    const allowed = argv[argv.indexOf('--allowedTools') + 1]!.split(',');
-    expect(allowed).toEqual(ALLOWED_TOOLS);
-    expect(allowed.every((t) => /__(get\w+|search\w+|atlassianUserInfo)$/.test(t))).toBe(true);
-    const denied = argv[argv.indexOf('--disallowedTools') + 1]!.split(',');
-    expect(denied).toEqual(expect.arrayContaining(['Bash', 'Read', 'Write', 'WebFetch']));
-    expect(denied).toContain('mcp__claude_ai_Atlassian_Rovo__editJiraIssue');
-    expect(denied.some((t) => allowed.includes(t))).toBe(false);
   });
 
   it('takes another model and effort', () => {
@@ -136,8 +132,6 @@ describe('runner', () => {
     expect(options).toMatchObject({
       cwd: join(s.dir, 'runner'),
       stdio: ['ignore', 'pipe', 'pipe'],
-      // A large search result stays inline instead of being saved under ~/.claude (ADR 0042).
-      env: expect.objectContaining({ MAX_MCP_OUTPUT_TOKENS: String(MCP_OUTPUT_TOKENS) }),
     });
     expect(options).not.toHaveProperty('shell');
     expect(existsSync(join(s.dir, 'runner'))).toBe(true);
@@ -193,6 +187,15 @@ describe('runner', () => {
     expect(s.logLines()[0]).not.toHaveProperty('detail');
   });
 
+  it('names the path of each schema issue, never the values', async () => {
+    const s = setup();
+    const done = s.run();
+    (await s.child()).child.exit(outer('{"n":"secret-value","extra":1}'));
+    const res = await done;
+    expect(res).toMatchObject({ detail: expect.stringMatching(/\(n: /) });
+    expect(JSON.stringify(res)).not.toContain('secret-value');
+  });
+
   it('answers failed when the run tried a tool outside the allow-list, whatever it answered', async () => {
     const s = setup();
     const done = s.run();
@@ -208,13 +211,6 @@ describe('runner', () => {
     const done = s.run();
     (await s.child()).child.exit(outer('I could not find those issues.'));
     expect(await done).toMatchObject({ ok: false, reason: 'invalid' });
-  });
-
-  it('answers auth when the prompt reports a needed login', async () => {
-    const s = setup();
-    const done = s.run();
-    (await s.child()).child.exit(outer('{"authRequired":true}'));
-    expect(await done).toMatchObject({ ok: false, reason: 'auth' });
   });
 
   it('answers auth for an error result that mentions authentication', async () => {

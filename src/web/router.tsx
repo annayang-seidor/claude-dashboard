@@ -50,6 +50,7 @@ interface LinkProps {
   to: string;
   className?: string;
   'aria-current'?: 'page';
+  title?: string;
   children: ReactNode;
 }
 

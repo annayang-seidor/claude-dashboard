@@ -95,13 +95,35 @@ describe('workspace tabs', () => {
     );
     const tabs = screen.getByRole('navigation', { name: 'Workspace' });
     const links = within(tabs).getAllByRole('link');
-    expect(links.map((a) => [a.textContent, a.getAttribute('href')])).toEqual([
-      ['Work ~/y', '/work'],
-      ['Personal ~/o', '/personal'],
-      ['Side projects ~/side', '/side'],
+    expect(links.map((a) => [a.textContent, a.getAttribute('href'), a.title])).toEqual([
+      ['Work', '/work', '~/y'],
+      ['Personal', '/personal', '~/o'],
+      ['Side projects', '/side', '~/side'],
     ]);
     expect(links[2]!.getAttribute('aria-current')).toBe('page');
     // A Personal-kind workspace gets the Personal search hint.
     expect(screen.getByRole('searchbox').getAttribute('placeholder')).toMatch(/Project/);
+  });
+});
+
+describe('DensityToggle', () => {
+  afterEach(() => {
+    localStorage.clear();
+    delete document.documentElement.dataset.density;
+  });
+
+  it('switches between loose and compact, names the next view, and remembers it', async () => {
+    renderEn(<Header workspace="work" query="" onQuery={vi.fn()} />);
+    expect(document.documentElement.dataset.density).toBe('loose');
+    const toCompact = screen.getByRole('button', { name: 'Switch to compact view' });
+    expect(toCompact.getAttribute('title')).toBe('Switch to compact view');
+    await userEvent.setup().click(toCompact);
+    expect(document.documentElement.dataset.density).toBe('compact');
+    expect(localStorage.getItem('claude-dashboard.density')).toBe('compact');
+    expect(screen.getByRole('button', { name: 'Switch to loose view' })).toBeTruthy();
+
+    cleanup();
+    renderEn(<Header workspace="work" query="" onQuery={vi.fn()} />);
+    expect(document.documentElement.dataset.density).toBe('compact');
   });
 });

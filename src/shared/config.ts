@@ -12,6 +12,12 @@ export const TOKEN_REFRESH_PATH = '/api/token/refresh';
 /** Query parameter the server puts in the printed URL; the web app reads it once on load. */
 export const TOKEN_QUERY_PARAM = 't';
 
+/** Where Atlassian sends the browser back after the OAuth consent: the one /api path that skips
+ * the token check, guarded by a one-time `state` instead (ADR 0062). */
+export const JIRA_OAUTH_CALLBACK_PATH = '/api/jira/oauth/callback';
+/** Page route the callback redirects to, with `?result=` (ADR 0062). */
+export const JIRA_OAUTH_RESULT_PATH = '/jira-oauth';
+
 /** Claude Code's `cleanupPeriodDays` when settings.json does not set it (spike Q6). */
 export const CLAUDE_CLEANUP_DEFAULT_DAYS = 30;
 

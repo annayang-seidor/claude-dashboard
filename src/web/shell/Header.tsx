@@ -4,6 +4,7 @@ import { Icon } from '../Icon';
 import { agoLabel } from '../sessions/time';
 import { HTML_LANG, LANGS, useI18n } from '../i18n';
 import { useConfig, useWorkspaceConfig, workspaceLabel } from '../config';
+import { useDensity } from '../density';
 import { Link, workspacePath, type Workspace } from '../router';
 import { useNarrow } from '../useNarrow';
 import { isEditable, isSearchShortcut, shortcutHint } from './shortcuts';
@@ -29,6 +30,7 @@ export function Header({ workspace, query, onQuery, sync }: HeaderProps) {
         <SearchBox workspace={workspace} query={query} onQuery={onQuery} />
         <div className="hdr__nav">
           <WorkspaceTabs current={workspace} />
+          <DensityToggle />
           <LanguageToggle />
         </div>
       </div>
@@ -162,11 +164,34 @@ function WorkspaceTabs({ current }: { current: Workspace }) {
           to={workspacePath(ws.id)}
           className="seg__item"
           aria-current={ws.id === current ? 'page' : undefined}
+          title={ws.root}
         >
-          {workspaceLabel(ws, lang)} <span className="seg__path">{ws.root}</span>
+          {workspaceLabel(ws, lang)}
         </Link>
       ))}
     </nav>
+  );
+}
+
+/** Compact or loose session lists. The icon and label name the view a click switches to, so the
+ * state is not shown by colour alone. */
+function DensityToggle() {
+  const { t } = useI18n();
+  const [density, setDensity] = useDensity();
+  const compact = density === 'compact';
+  const label = t(compact ? 'header.densityLoose' : 'header.densityCompact');
+  return (
+    <div className="seg seg--density">
+      <button
+        type="button"
+        className="seg__item"
+        aria-label={label}
+        title={label}
+        onClick={() => setDensity(compact ? 'loose' : 'compact')}
+      >
+        <Icon name={compact ? 'maximize-2' : 'minimize-2'} size={16} />
+      </button>
+    </div>
   );
 }
 

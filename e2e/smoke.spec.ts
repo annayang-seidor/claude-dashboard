@@ -73,7 +73,7 @@ test('v0 smoke: filter, search, bookmark, delete + undo, Personal, English', asy
     await search.fill('');
     await page.getByRole('link', { name: /個人/ }).click();
     await expect(page).toHaveURL(`${E2E_ORIGIN}/personal?t=${E2E_TOKEN}`);
-    await expect(page.getByText('個人專案沒有 Jira', { exact: false })).toBeVisible();
+    await expect(page.getByText('個人專案 - 以repo分組')).toBeVisible();
     await expect(rows(page)).toHaveCount(2);
   });
 
@@ -84,7 +84,7 @@ test('v0 smoke: filter, search, bookmark, delete + undo, Personal, English', asy
       'aria-current',
       'page',
     );
-    await expect(page.getByText('Personal projects have no Jira', { exact: false })).toBeVisible();
+    await expect(page.getByText('Personal projects - grouped by repo')).toBeVisible();
     await expect(rows(page)).toHaveCount(2);
   });
 
@@ -191,7 +191,7 @@ test('Jira titles: in the ticket group heading and found by search', async ({ br
   await page.goto(`${E2E_ORIGIN}/work?t=${E2E_TOKEN}`);
   const ticket = group(page, 'ACME-608');
   await expect(ticket.getByRole('button').first()).toContainText(`ACME-608${E2E_JIRA_TITLE}`);
-  // The fake runner has no title for ACME-623: its heading is the key alone.
+  // The fake Jira has no title for ACME-623: its heading is the key alone.
   await expect(group(page, 'ACME-623')).not.toContainText(E2E_JIRA_TITLE);
   await page.getByRole('searchbox', { name: 'Search sessions' }).fill('preorder and gift');
   await expect(page.getByTestId('group')).toHaveCount(1);
@@ -323,7 +323,7 @@ test('Jira sync status: the Sync button runs a sync and the header says when', a
   const page = await ctx.newPage();
   await page.goto(`${E2E_ORIGIN}/work?t=${E2E_TOKEN}`);
   const header = page.locator('header');
-  // The fake runner answers an empty inbox; on a weekday the start-up sync may already have run.
+  // The fake Jira has an empty inbox; on a weekday the start-up sync may already have run.
   await header.getByRole('button', { name: 'Sync Jira now' }).click();
   await expect(header).toContainText('Jira synced just now');
   await header.screenshot({ path: 'e2e/screenshots/en-jira-synced.png' });

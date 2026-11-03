@@ -1,7 +1,11 @@
 .DS_Store
-.claude/
 node_modules/
 dist/
 test-results/
 playwright-report/
 e2e/screenshots/
+.env
+.env.*
+!.env.example
+.claude/
+.vscode/

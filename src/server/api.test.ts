@@ -30,6 +30,8 @@ import { DEFAULT_PAGE_CONFIG, TOKEN_HEADER } from '../shared/config';
 import { allowLists, createApp } from './app';
 import { createEventHub } from './events';
 import { createIndexer } from './indexer';
+import { JiraError } from './jira/auth';
+import type { JiraClient, JiraIssue } from './jira/client';
 import { PROMPT_PATH, createJiraInbox, parsePromptFile } from './jobs/jiraInbox';
 import { createJiraTitles } from './jobs/jiraTitles';
 import type { Runner } from './jobs/runner';
@@ -82,6 +84,8 @@ interface Setup {
   state: StateStore;
   /** Every prompt the fake runner was given. */
   prompts: string[];
+  /** Every JQL the fake Jira was asked. */
+  jqls: string[];
 }
 
 async function setup(
@@ -94,6 +98,11 @@ async function setup(
     hac?: boolean;
     /** What the fake runner answers; defaults to a failed run. */
     run?: Runner['run'];
+    /** What the fake Jira has: titles by key, and the issues the inbox's changed search finds. */
+    titles?: Record<string, { title: string; status: string }>;
+    inboxIssues?: JiraIssue[];
+    /** Every fake Jira call fails this way. */
+    jiraFails?: 'auth' | 'failed';
     /** config.json's jiraBaseUrl; unset by default. */
     jiraBaseUrl?: string;
   } = {},
@@ -146,9 +155,30 @@ async function setup(
       return opts.run ? opts.run(req) : Promise.resolve({ ok: false, reason: 'failed' });
     },
   };
-  const jiraInbox = createJiraInbox({ runner, state });
+  const jqls: string[] = [];
+  const jira: Pick<JiraClient, 'search' | 'issue' | 'myself'> = {
+    async search({ jql }) {
+      jqls.push(jql);
+      if (opts.jiraFails) throw new JiraError(opts.jiraFails, `fake ${opts.jiraFails}`);
+      if (jql.startsWith('key in')) {
+        return Object.entries(opts.titles ?? {}).map(([key, t]) => ({
+          id: key,
+          key,
+          fields: { summary: t.title, status: { name: t.status } },
+        }));
+      }
+      return jql.startsWith('(assignee') ? (opts.inboxIssues ?? []) : [];
+    },
+    issue: async () => null,
+    async myself() {
+      if (opts.jiraFails) throw new JiraError(opts.jiraFails, `fake ${opts.jiraFails}`);
+      return { accountId: 'acc-me', displayName: 'Anna Yang' };
+    },
+  };
+  const jiraInbox = createJiraInbox({ runner, jira, state, log: () => {} });
   const jiraTitles = createJiraTitles({
-    runner,
+    jira,
+    log: () => {},
     state,
     keys: async () =>
       (await sessions.list('work')).flatMap((s) => (s.ticketKey ? [s.ticketKey] : [])),
@@ -206,7 +236,18 @@ async function setup(
             ? init.body
             : JSON.stringify(init.body),
     });
-  return { root, statePath, trashDir, settingsPath, request, watcher, launches, state, prompts };
+  return {
+    root,
+    statePath,
+    trashDir,
+    settingsPath,
+    request,
+    watcher,
+    launches,
+    state,
+    prompts,
+    jqls,
+  };
 }
 
 async function list(s: Setup, workspace: string) {
@@ -426,8 +467,6 @@ describe('GET /api/auto-archive', () => {
 });
 
 describe('Jira title routes', () => {
-  const answer = (data: unknown) => async () => ({ ok: true as const, data: data as never });
-
   it('GET returns the cache without running anything', async () => {
     const at = '2026-10-24T09:00:00.000Z';
     const s = await setup();
@@ -441,25 +480,26 @@ describe('Jira title routes', () => {
       titles: { 'ACME-608': { title: 'Preorder accordion', status: 'Done' } },
       lastRun: null,
     });
-    expect(s.prompts).toEqual([]);
+    expect(s.jqls).toEqual([]);
   });
 
-  it('POST refresh looks up the work ticket keys and returns the new cache', async () => {
+  it('POST refresh looks up the work ticket keys in Jira and returns the new cache', async () => {
     const s = await setup({
-      run: answer({ issues: [{ key: 'ACME-608', title: 'Preorder accordion', status: 'Done' }] }),
+      titles: { 'ACME-608': { title: 'Preorder accordion', status: 'Done' } },
     });
     const res = await s.request('POST', '/api/jira/titles/refresh');
     expect(res.status).toBe(200);
     const body = JiraTitlesResponse.parse(await res.json());
     expect(body.titles).toEqual({ 'ACME-608': { title: 'Preorder accordion', status: 'Done' } });
     expect(body.lastRun).toMatchObject({ ok: true });
-    expect(s.prompts).toHaveLength(1);
-    expect(s.prompts[0]).toContain('ACME-608');
+    expect(s.jqls).toHaveLength(1);
+    expect(s.jqls[0]).toContain('ACME-608');
+    expect(s.prompts).toEqual([]);
   });
 
   it('POST refresh reports a needed login and keeps the cache', async () => {
     const at = '2026-10-24T09:00:00.000Z';
-    const s = await setup({ run: async () => ({ ok: false, reason: 'auth' }) });
+    const s = await setup({ jiraFails: 'auth' });
     await s.state.setJiraTitles({
       'ACME-608': { title: 'Preorder accordion', status: 'Done', fetchedAt: at },
     });
@@ -476,7 +516,7 @@ describe('Jira title routes', () => {
       headers: { [TOKEN_HEADER]: 'x' },
     });
     expect(res.status).toBe(403);
-    expect(s.prompts).toEqual([]);
+    expect(s.jqls).toEqual([]);
   });
 });
 
@@ -491,6 +531,19 @@ describe('Jira inbox routes', () => {
     reason: 'Two replies after your last comment',
     lastRelevantAt: '2026-10-23T09:40:00+08:00',
   } as const;
+  /** The Jira issue the item is made from; assigned to someone else, so kind is mention. */
+  const issue: JiraIssue = {
+    id: '1',
+    key: item.key,
+    fields: {
+      summary: item.title,
+      status: { name: item.status },
+      assignee: { accountId: 'acc-other', displayName: item.assignee },
+      updated: '2026-10-23T09:40:00.000+0800',
+      comment: { comments: [] },
+    },
+  };
+  const { key, bucket, reason, lastRelevantAt } = item;
 
   it('GET returns nothing before the first sync, without running anything', async () => {
     const s = await setup();
@@ -517,9 +570,10 @@ describe('Jira inbox routes', () => {
 
   it('POST sync runs the inbox job and returns the stored result', async () => {
     const s = await setup({
+      inboxIssues: [issue],
       run: async (req) => ({
         ok: true,
-        data: req.schema.parse({ syncedAt: '2026-10-23T10:12:00+08:00', items: [item] }),
+        data: req.schema.parse({ items: [{ key, bucket, reason, lastRelevantAt }] }),
       }),
     });
     const body = JiraInboxResponse.parse(
@@ -538,6 +592,7 @@ describe('Jira inbox routes', () => {
     const result = { syncedAt: '2026-10-23T02:12:00.000Z', items: [item] };
     const s = await setup({
       state: { version: 1, sessions: {}, sync: { jira: { result } } },
+      inboxIssues: [issue],
       run: async () => ({ ok: false, reason: 'invalid', detail: 'answer does not match' }),
     });
     const body = JiraInboxResponse.parse(

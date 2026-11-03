@@ -41,7 +41,7 @@
 .brand__logo {
   display: block;
   width: 36px;
-  height: 36px;
+  height: var(--h-row-block);
 }
 
 .brand__title {
@@ -77,6 +77,7 @@
   align-items: center;
   justify-content: center;
 }
+
 .sync__retry:disabled {
   cursor: progress;
   opacity: 0.6;
@@ -91,11 +92,13 @@
 .spin {
   animation: spin 1s linear infinite;
 }
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
   .spin {
     animation: none;
@@ -119,11 +122,11 @@
   width: 420px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--gap-base);
   background: var(--c-surface);
   border: 1px solid var(--c-border);
   border-radius: var(--r-lg);
-  padding: 0 14px;
+  padding: var(--p-row-block);
   min-height: 44px;
   box-sizing: border-box;
 }
@@ -145,6 +148,7 @@
   min-height: 42px;
   padding: 0;
 }
+
 .search__input:focus-visible {
   outline: none;
 }
@@ -163,7 +167,7 @@
 .hdr__nav {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--gap-base);
 }
 
 /* Workspace tabs and language toggle share the segmented look. */
@@ -186,18 +190,21 @@
   line-height: 1.2;
   white-space: nowrap;
 }
+
 .seg__item:hover {
   color: var(--c-text-strong);
 }
+
 .seg__item[aria-current='page'],
 .seg__item[aria-pressed='true'] {
   background: var(--c-text);
   color: var(--c-on-dark);
 }
 
-.seg__path {
-  font-family: var(--font-mono);
-  font-size: 12px;
+.seg--density .seg__item {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
 }
 
 .seg--lang .seg__item {
@@ -232,7 +239,7 @@
 /* Server refused the token (ADR 0032): text and icon, not colour alone. */
 .access-lost {
   display: flex;
-  gap: 12px;
+  gap: var(--gap-base);
   align-items: flex-start;
   margin: 0 0 16px;
   padding: 14px 16px;
@@ -241,20 +248,25 @@
   background: var(--c-ops-chip);
   color: var(--c-ops-chip-fg);
 }
+
 .access-lost p {
   margin: 0;
 }
+
 .access-lost__title {
   font-weight: 600;
 }
+
 .access-lost .access-lost__how {
   margin-top: 4px;
   color: var(--c-text);
 }
+
 .access-lost code {
   font-size: 12.5px;
   user-select: all;
 }
+
 .access-lost .access-lost__actions {
   display: flex;
   flex-wrap: wrap;
@@ -263,6 +275,7 @@
   margin-top: 10px;
   color: var(--c-text);
 }
+
 .access-lost__reconnect {
   min-height: 32px;
   padding: 0 12px;
@@ -274,10 +287,12 @@
   font-size: 13px;
   cursor: pointer;
 }
+
 .access-lost__reconnect:disabled {
   opacity: 0.6;
   cursor: default;
 }
+
 .access-lost__copy {
   display: inline-flex;
   align-items: center;
@@ -293,6 +308,7 @@
   color: var(--c-text-muted);
   cursor: pointer;
 }
+
 .access-lost__copy:hover {
   color: var(--c-text);
 }
@@ -301,16 +317,19 @@
  * and drops the shortcut hint, since a phone has no keyboard shortcut. */
 @media (max-width: 600px) {
   .page__inner {
-    gap: 12px;
+    gap: var(--gap-base);
     padding-inline: 16px;
   }
+
   .hdr__tools {
     justify-content: flex-start;
   }
+
   .search {
     flex: 1 1 100%;
     width: 100%;
   }
+
   .search .kbd {
     display: none;
   }

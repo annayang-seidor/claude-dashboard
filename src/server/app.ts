@@ -1,7 +1,8 @@
 import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono, type MiddlewareHandler } from 'hono';
 import type { HealthResponse, TokenRefreshResponse } from '../shared/api';
-import { TOKEN_REFRESH_PATH } from '../shared/config';
+import { JIRA_OAUTH_CALLBACK_PATH, TOKEN_REFRESH_PATH } from '../shared/config';
+import { registerJiraOAuth, type JiraOAuthRouteDeps } from './jira/routes';
 import { registerApi, type ApiDeps } from './routes';
 import { security, type SecurityOptions } from './security';
 
@@ -21,6 +22,8 @@ export interface AppOptions extends SecurityOptions {
   webRoot?: string;
   /** Session routes and live updates. Omitted in tests that only check the middleware. */
   api?: ApiDeps;
+  /** Jira OAuth routes (ADR 0062). Omitted in tests that do not need them. */
+  jira?: JiraOAuthRouteDeps;
 }
 
 /** Host and Origin allow-lists for a server on `port`, plus the Vite dev origin when given. */
@@ -36,12 +39,13 @@ export function allowLists(
 
 export function createApp(opts: AppOptions): Hono {
   const app = new Hono();
-  app.use('*', security(opts));
+  app.use('*', security({ ...opts, tokenFreeGets: opts.jira ? [JIRA_OAUTH_CALLBACK_PATH] : [] }));
 
   app.get('/api/health', (c) => c.json({ ok: true } satisfies HealthResponse));
   // The security check has already accepted the current or the previous token.
   app.post(TOKEN_REFRESH_PATH, (c) => c.json({ token: opts.token } satisfies TokenRefreshResponse));
   if (opts.api) registerApi(app, opts.api);
+  if (opts.jira) registerJiraOAuth(app, opts.jira);
 
   if (opts.webRoot) {
     // Vite puts a content hash in every asset name, so a file never changes once built. A missing

@@ -47,6 +47,10 @@
   --font-mono: 'JetBrains Mono', monospace;
 
   --focus-ring: 2px solid var(--c-text);
+
+  --h-row-block: 36px;
+  --gap-base: 12px;
+  --p-row-block: 0 14px;
 }
 
 body {
@@ -57,6 +61,7 @@ body {
 a {
   color: var(--c-text);
 }
+
 a:hover {
   color: var(--c-text-strong);
 }
@@ -79,9 +84,11 @@ select:focus-visible {
 .ib {
   transition: background-color 0.15s;
 }
+
 .ib:hover {
   background-color: var(--c-sunken) !important;
 }
+
 .ib-play:hover {
   background-color: var(--c-play-hover) !important;
 }

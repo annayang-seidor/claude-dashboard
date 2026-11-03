@@ -6,6 +6,9 @@ import { allowLists, createApp } from './app';
 import { cleanupWarnings, loadConfig, resolveWorkspaces } from './config';
 import { readHacEnvs } from './hac';
 import { createEventHub } from './events';
+import { createJiraAuth, jiraRedirectUri } from './jira/auth';
+import { createJiraClient, type JiraClient } from './jira/client';
+import type { AtlassianApp } from './jira/env';
 import { createIndexer } from './indexer';
 import { createAutoArchive } from './jobs/autoArchive';
 import { createDailyJobs } from './jobs/daily';
@@ -47,6 +50,14 @@ export interface StartOptions {
   launcher?: Launcher;
   /** Headless `claude -p` runner. Required, so a test cannot reach the real Jira by default. */
   runner: Runner;
+  /** The Atlassian OAuth app from the repo's .env (ADR 0062). Unset in tests, so Jira stays
+   * unconfigured unless a test passes one with a fake `fetch`. */
+  atlassianApp?: AtlassianApp | null;
+  /** For the Jira OAuth calls; replaced in tests. */
+  fetch?: typeof fetch;
+  /** Jira reads for the titles and inbox jobs. Defaults to the REST client on the stored login,
+   * which reaches nothing without `atlassianApp` (ADR 0063). */
+  jira?: JiraClient;
 }
 
 export interface Started {
@@ -141,9 +152,20 @@ export async function start(opts: StartOptions): Promise<Started> {
   await daily.start();
   await sessions.rescan(); // startup prune
 
+  // Read on first use, then kept in memory; the file is the dashboard's, mode 600 (ADR 0062).
+  const jiraAuth = createJiraAuth({
+    app: opts.atlassianApp ?? null,
+    tokenPath: join(dashboardDir, 'jira-oauth.json'),
+    redirectUri: jiraRedirectUri(opts.port),
+    siteUrl: config.jiraBaseUrl ?? null,
+    fetch: opts.fetch,
+  });
+  const pageOrigin = opts.webOrigin ?? `http://${SERVER_HOST}:${opts.port}`;
+  const jira = opts.jira ?? createJiraClient({ auth: jiraAuth, fetch: opts.fetch });
+
   // Jira belongs to Work-kind workspaces (spec § Jira); personal ticket keys are not looked up.
   const jiraTitles = createJiraTitles({
-    runner: opts.runner,
+    jira,
     state,
     keys: async () =>
       (await Promise.all(work.map((w) => sessions.list(w.id))))
@@ -158,6 +180,7 @@ export async function start(opts: StartOptions): Promise<Started> {
   // On start and every 45 min, Mon–Fri 09:00–19:00 by default, in the background (ADR 0042).
   const jiraInbox = createJiraInbox({
     runner: opts.runner,
+    jira,
     state,
     schedule: config.jira,
     onChanged: () => events.emit(),
@@ -196,13 +219,13 @@ export async function start(opts: StartOptions): Promise<Started> {
       jiraBaseUrl: config.jiraBaseUrl ?? null,
       retention: () => readCleanupPeriodDays(opts.claudeSettingsPath),
     },
+    jira: { auth: jiraAuth, pageOrigin, onChanged: () => events.emit() },
   });
 
   const { server } = await listen(app, opts.port);
   // performance.now() counts from process start, so this includes tsx start-up and the first index.
   timing('ready to serve after', performance.now());
 
-  const pageOrigin = opts.webOrigin ?? `http://${SERVER_HOST}:${opts.port}`;
   const url = `${pageOrigin}/?${TOKEN_QUERY_PARAM}=${opts.token}`;
   // The token is a secret: owner-only, and chmod in case the file already existed (ADR 0032).
   const urlFile = join(dashboardDir, 'url');

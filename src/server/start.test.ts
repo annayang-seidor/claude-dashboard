@@ -16,7 +16,7 @@ import { TOKEN_HEADER } from '../shared/config';
 import { ConfigError } from './config';
 import { localDay } from './jobs/daily';
 import type { Runner } from './jobs/runner';
-import { start, type Started } from './start';
+import { start, type StartOptions, type Started } from './start';
 
 const FIXTURES = fileURLToPath(new URL('../../fixtures/projects', import.meta.url));
 // Fixture cwds were recorded under this home folder; nothing is read from it.
@@ -25,20 +25,17 @@ const HOME = '/Users/annayang';
 const PORT = 4319;
 const TOKEN = 'start-test-token';
 
-// Never runs claude -p; records the jira-titles prompts it was given (the inbox runs only on
-// weekday working hours, so it is left out).
-const prompts: string[] = [];
-const runner: Runner = {
-  run: async (req) => {
-    if (req.job === 'jira-titles') prompts.push(req.prompt);
-    return { ok: false, reason: 'failed' };
-  },
-};
+// Never runs claude -p.
+const runner: Runner = { run: async () => ({ ok: false, reason: 'failed' }) };
+// Every JQL the injected fake Jira was asked, and every request the default client sent.
+const jqls: string[] = [];
+const fetched: string[] = [];
 
 const cleanups: (() => unknown)[] = [];
 afterEach(async () => {
   for (const fn of cleanups.splice(0).reverse()) await fn();
-  prompts.length = 0;
+  jqls.length = 0;
+  fetched.length = 0;
   vi.restoreAllMocks();
 });
 
@@ -55,7 +52,7 @@ function fixtureDir(files: { config?: unknown; state?: unknown; settings?: unkno
   return dir;
 }
 
-const startIn = (dir: string) =>
+const startIn = (dir: string, extra: Partial<StartOptions> = {}) =>
   start({
     home: HOME,
     projectsRoot: join(dir, 'projects'),
@@ -65,12 +62,20 @@ const startIn = (dir: string) =>
     token: TOKEN,
     launcher: { open: async () => {} },
     runner,
+    fetch: (async (url: string | URL) => {
+      fetched.push(String(url));
+      throw new Error('no network in tests');
+    }) as typeof fetch,
+    ...extra,
   });
 
-async function started(dir = fixtureDir()): Promise<{ dir: string; server: Started }> {
+async function started(
+  dir = fixtureDir(),
+  extra: Partial<StartOptions> = {},
+): Promise<{ dir: string; server: Started }> {
   vi.spyOn(console, 'log').mockImplementation(() => {});
   vi.spyOn(console, 'warn').mockImplementation(() => {});
-  const server = await startIn(dir);
+  const server = await startIn(dir, extra);
   cleanups.push(() => server.close());
   return { dir, server };
 }
@@ -90,10 +95,26 @@ describe('start', () => {
     expect(statSync(log).mode & 0o777).toBe(0o600);
   });
 
-  it('looks up the Work ticket keys in the background, never through a real claude', async () => {
+  it('looks up the Work ticket keys in Jira in the background', async () => {
+    await started(fixtureDir(), {
+      jira: {
+        search: async ({ jql }) => (jqls.push(jql), []),
+        issue: async () => null,
+        myself: async () => ({ accountId: 'a', displayName: 'A' }),
+      },
+    });
+    // On a weekday in working hours the inbox searches too; the titles search is the `key in` one.
+    await vi.waitFor(() => expect(jqls.find((q) => q.startsWith('key in'))).toContain('ACME-608'));
+  });
+
+  it('reaches no network without an Atlassian app: the titles job reports auth', async () => {
     await started();
-    await vi.waitFor(() => expect(prompts).toHaveLength(1));
-    expect(prompts[0]).toContain('ACME-608');
+    const titles = async () =>
+      (await (await get('/api/jira/titles')).json()) as { lastRun: unknown };
+    await vi.waitFor(async () =>
+      expect((await titles()).lastRun).toMatchObject({ ok: false, reason: 'auth' }),
+    );
+    expect(fetched).toEqual([]);
   });
 
   it('writes the link to an owner-only url file', async () => {

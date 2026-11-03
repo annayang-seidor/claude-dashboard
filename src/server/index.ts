@@ -6,6 +6,7 @@ import { parseArgs } from 'node:util';
 import { z } from 'zod';
 import { SERVER_PORT } from '../shared/config';
 import { ConfigError, PROJECT_CONFIG_PATH } from './config';
+import { ENV_PATH, readAtlassianApp } from './jira/env';
 import { createRunner } from './jobs/runner';
 import { CLAUDE_SETTINGS_PATH } from './retention';
 import { start } from './start';
@@ -37,6 +38,16 @@ const token = await loadToken(tokenPath, {
   revoke: args['revoke-token'],
 });
 
+/** No fallback to defaults: the message names the file and key to fix (ADR 0060). */
+function exitOnConfigError(err: unknown): never {
+  if (!(err instanceof ConfigError)) throw err;
+  console.error(err.message);
+  process.exit(1);
+}
+
+// Read here, not into process.env, so `claude -p` runs never inherit the secret (ADR 0062).
+const atlassianApp = await readAtlassianApp(ENV_PATH).catch(exitOnConfigError);
+
 const { url } = await start({
   home,
   projectsRoot: join(home, '.claude', 'projects'),
@@ -54,12 +65,8 @@ const { url } = await start({
     cwd: join(dashboardDir, 'runner'),
     logPath: join(dashboardDir, 'activity.log'),
   }),
-}).catch((err: unknown) => {
-  // No fallback to defaults: the message names the file and key to fix (ADR 0060).
-  if (!(err instanceof ConfigError)) throw err;
-  console.error(err.message);
-  process.exit(1);
-});
+  atlassianApp,
+}).catch(exitOnConfigError);
 
 // Not under launchd, where stdout is a log file that would keep the token (ADR 0032). `pnpm
 // dev` pipes stdout through concurrently, so it is no TTY but still wants the link.

@@ -2,15 +2,17 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
+import type { RunFailure } from '../../shared/api';
+import { JiraError } from '../jira/auth';
+import type { JiraClient, JiraIssue } from '../jira/client';
 import { openStateStore } from '../state';
 import {
   KEYS_PER_RUN,
   RETRY_AFTER_FAILURE_MS,
   TITLE_TTL_MS,
   createJiraTitles,
-  jiraTitlesPrompt,
+  titlesJql,
 } from './jiraTitles';
-import type { RunRequest, RunResult, Runner } from './runner';
 
 const tmpDirs: string[] = [];
 afterEach(() => {
@@ -19,7 +21,19 @@ afterEach(() => {
 
 const START = new Date('2026-10-24T09:00:00.000Z');
 
-type Reply = RunResult<unknown> | ((req: RunRequest<unknown>) => RunResult<unknown>);
+interface Found {
+  ok: true;
+  data: { issues: { key: string; title: unknown; status?: string }[] };
+}
+type Result = Found | { ok: false; reason: RunFailure; status?: number };
+type Reply = Result | ((req: { jql: string }) => Result);
+
+/** A search reply as Jira sends it. */
+const toIssue = (i: Found['data']['issues'][number]): JiraIssue => ({
+  id: i.key,
+  key: i.key,
+  fields: { summary: i.title, status: { name: i.status ?? 'To Do' } },
+});
 
 async function setup(keys: string[]) {
   const dir = mkdtempSync(join(tmpdir(), 'jira-titles-test-'));
@@ -27,33 +41,40 @@ async function setup(keys: string[]) {
   const state = await openStateStore({ path: join(dir, 'state.json'), log: () => {} });
   let now = START;
   const replies: Reply[] = [];
-  const requests: RunRequest<unknown>[] = [];
-  const runner: Runner = {
-    async run<T>(req: RunRequest<T>) {
-      requests.push(req as RunRequest<unknown>);
+  const requests: { jql: string }[] = [];
+  /** Per-key reads after a 400; a key not listed here is a 404. */
+  const single: Record<string, string> = {};
+  const jira: Pick<JiraClient, 'search' | 'issue'> = {
+    async search(req) {
+      requests.push({ jql: req.jql });
       const reply = replies.shift() ?? { ok: false, reason: 'failed' };
-      const result = typeof reply === 'function' ? reply(req as RunRequest<unknown>) : reply;
-      if (!result.ok) return result;
-      // Validate like the real runner does.
-      const parsed = req.schema.safeParse(result.data);
-      return parsed.success
-        ? { ok: true, data: parsed.data }
-        : { ok: false, reason: 'invalid' as const };
+      const result = typeof reply === 'function' ? reply(req) : reply;
+      if (!result.ok) {
+        const kind = result.reason === 'invalid' ? 'failed' : result.reason;
+        throw new JiraError(kind, `fake ${kind}`, result.status);
+      }
+      return result.data.issues.map(toIssue);
+    },
+    async issue(key) {
+      requests.push({ jql: `issue ${key}` });
+      return single[key] ? toIssue({ key, title: single[key] }) : null;
     },
   };
   let changed = 0;
   const titles = createJiraTitles({
-    runner,
+    jira,
     state,
     keys: async () => keys,
     onChanged: () => changed++,
     now: () => now,
+    log: () => {},
   });
   return {
     state,
     titles,
     requests,
     replies,
+    single,
     changed: () => changed,
     advance: (ms: number) => (now = new Date(now.getTime() + ms)),
   };
@@ -64,12 +85,9 @@ const issues = (...list: [key: string, title: string, status?: string][]) => ({
   data: { issues: list.map(([key, title, status = 'To Do']) => ({ key, title, status })) },
 });
 
-describe('jiraTitlesPrompt', () => {
-  it('names every key and the read-only tools, and asks for bare JSON', () => {
-    const p = jiraTitlesPrompt(['FA-1', 'ACME-642']);
-    expect(p).toContain('key in (FA-1, ACME-642)');
-    expect(p).toContain('searchJiraIssuesUsingJql');
-    expect(p).toContain('{"authRequired":true}');
+describe('titlesJql', () => {
+  it('names every key in one search', () => {
+    expect(titlesJql(['FA-1', 'ACME-642'])).toBe('key in (FA-1, ACME-642)');
   });
 });
 
@@ -83,8 +101,7 @@ describe('jiraTitles', () => {
       'FA-2': { title: 'Gift card', status: 'Done' },
     });
     expect(res.lastRun).toEqual({ at: START.toISOString(), ok: true });
-    expect(s.requests).toHaveLength(1);
-    expect(s.requests[0]!.job).toBe('jira-titles');
+    expect(s.requests).toEqual([{ jql: 'key in (FA-1, FA-2)' }]);
     expect(s.changed()).toBe(1);
 
     // Fresh: a background refresh runs nothing.
@@ -109,12 +126,9 @@ describe('jiraTitles', () => {
     expect(s.requests).toHaveLength(3);
   });
 
-  it('caches keys Jira has no issue for, and keys left out of the answer, as missing', async () => {
+  it('caches keys Jira returns no issue for as missing', async () => {
     const s = await setup(['FA-1', 'FA-404', 'FA-9']);
-    s.replies.push({
-      ok: true,
-      data: { issues: [{ key: 'FA-1', title: 'A', status: 'Done' }], missing: ['FA-404'] },
-    });
+    s.replies.push({ ok: true, data: { issues: [{ key: 'FA-1', title: 'A', status: 'Done' }] } });
     const res = await s.titles.refresh();
     expect(Object.keys(res.titles)).toEqual(['FA-1']);
     expect(s.state.jiraTitles()['FA-404']).toEqual({
@@ -133,21 +147,42 @@ describe('jiraTitles', () => {
     expect(s.state.jiraTitles()).not.toHaveProperty('EVIL-1');
   });
 
-  it('keeps the cache when the answer fails its schema', async () => {
+  it('counts an issue without a usable summary as missing', async () => {
+    const s = await setup(['FA-1']);
+    s.replies.push({ ok: true, data: { issues: [{ key: 'FA-1', title: 42 }] } });
+    expect((await s.titles.refresh()).titles).toEqual({});
+    expect(s.state.jiraTitles()['FA-1']).toMatchObject({ missing: true });
+  });
+
+  it('reads key by key when Jira refuses the search with 400, a 404 being missing', async () => {
+    const s = await setup(['FA-1', 'FA-404']);
+    s.replies.push({ ok: false, reason: 'failed', status: 400 });
+    s.single['FA-1'] = 'One by one';
+    const res = await s.titles.refresh();
+    expect(res.titles).toEqual({ 'FA-1': { title: 'One by one', status: 'To Do' } });
+    expect(s.state.jiraTitles()['FA-404']).toMatchObject({ missing: true });
+    expect(s.requests.map((r) => r.jql)).toEqual([
+      'key in (FA-1, FA-404)',
+      'issue FA-1',
+      'issue FA-404',
+    ]);
+  });
+
+  it('keeps the cache when Jira fails', async () => {
     const s = await setup(['FA-1']);
     s.replies.push(issues(['FA-1', 'Good title']));
     await s.titles.refresh();
     const before = s.state.jiraTitles();
 
-    s.replies.push({ ok: true, data: { issues: [{ key: 'FA-1', title: 42 }] } });
+    s.replies.push({ ok: false, reason: 'failed', status: 500 });
     const res = await s.titles.refresh({ force: true });
-    expect(res.lastRun).toMatchObject({ ok: false, reason: 'invalid' });
+    expect(res.lastRun).toMatchObject({ ok: false, reason: 'failed' });
     expect(res.titles).toEqual({ 'FA-1': { title: 'Good title', status: 'To Do' } });
     expect(s.state.jiraTitles()).toEqual(before);
     expect(s.changed()).toBe(1);
   });
 
-  it('keeps the cache and reports auth when the Rovo login is needed', async () => {
+  it('keeps the cache and reports auth when the Jira login is needed', async () => {
     const s = await setup(['FA-1']);
     s.replies.push({ ok: false, reason: 'auth' });
     const res = await s.titles.refresh();
@@ -183,7 +218,7 @@ describe('jiraTitles', () => {
     const keys = Array.from({ length: KEYS_PER_RUN + 5 }, (_, i) => `FA-${i + 1}`);
     const s = await setup(keys);
     s.replies.push((req) => {
-      const asked = req.prompt.match(/FA-\d+/g)!;
+      const asked = req.jql.match(/FA-\d+/g)!;
       return issues(...[...new Set(asked)].map((k): [string, string] => [k, `T ${k}`]));
     });
     s.replies.push({ ok: false, reason: 'failed' });

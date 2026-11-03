@@ -10,7 +10,6 @@ import {
   matchesStatus,
   matchesType,
   normalizeQuery,
-  STATUS_FILTERS,
   statusCounts,
   timeline,
   TYPE_FILTERS,
@@ -32,6 +31,7 @@ import {
   type OnResume,
 } from './Row';
 import { NewSessionButton, type OnNewSession } from './NewSessionButton';
+import { StatusPills } from './StatusPills';
 import { useCollapsed } from './useCollapsed';
 
 type View = 'ticket' | 'time';
@@ -101,20 +101,7 @@ export function WorkList({
             </button>
           ))}
         </div>
-        <div role="group" aria-label={t('list.filterByStatus')} className="chips chips--status">
-          {STATUS_FILTERS.map((f) => (
-            <button
-              key={f}
-              type="button"
-              className="pill"
-              aria-pressed={status === f}
-              onClick={() => setStatus(f)}
-            >
-              {f !== 'all' && <Icon name={STATUS_ICON[f]} size={14} />}
-              {t(`list.statusFilter.${f}`)} <span className="chip__count">{sCounts[f]}</span>
-            </button>
-          ))}
-        </div>
+        <StatusPills status={status} counts={sCounts} onChange={setStatus} />
         <button type="button" className="ib cleanup-btn" onClick={onCleanup}>
           <Icon name="scissors" size={14} />
           {t('list.cleanUp')}
@@ -225,11 +212,6 @@ const TILE_ICON: Record<Group['kind'], IconName> = { ticket: 'tag', ops: 'cloud'
 /** Ops groups with a release label use the prototype's release icon. */
 const tileIcon = (g: Group): IconName =>
   g.kind === 'ops' && g.releaseLabel ? 'alert-triangle' : TILE_ICON[g.kind];
-const STATUS_ICON: Record<Exclude<StatusFilter, 'all'>, IconName> = {
-  todo: 'circle',
-  bookmarked: 'bookmark',
-  done: 'check-circle',
-};
 
 interface WorkGroupProps {
   view: GroupView;

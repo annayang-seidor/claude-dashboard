@@ -11,6 +11,9 @@ export interface SecurityOptions {
   token: string;
   /** The token before the last rotation: accepted only by POST TOKEN_REFRESH_PATH (ADR 0048). */
   previousToken?: string | null;
+  /** /api paths a plain GET reaches without the token: browser redirects from another site,
+   * which cannot send the header. Each route checks its own one-time secret (ADR 0062). */
+  tokenFreeGets?: readonly string[];
 }
 
 const SAFE_METHODS = new Set(['GET', 'HEAD']);
@@ -23,7 +26,7 @@ function tokenMatches(given: string | undefined, expected: string): boolean {
 }
 
 /** Host check on every request; Origin check on non-GET; token check on /api, where the refresh
- * route also takes the previous token. */
+ * route also takes the previous token and `tokenFreeGets` need none. */
 export function security(opts: SecurityOptions): MiddlewareHandler {
   const hosts = new Set(opts.allowedHosts.map((h) => h.toLowerCase()));
   const origins = new Set(opts.allowedOrigins.map((o) => o.toLowerCase()));
@@ -42,7 +45,8 @@ export function security(opts: SecurityOptions): MiddlewareHandler {
       }
     }
 
-    if (c.req.path.startsWith('/api/')) {
+    const tokenFree = c.req.method === 'GET' && !!opts.tokenFreeGets?.includes(c.req.path);
+    if (c.req.path.startsWith('/api/') && !tokenFree) {
       const given = c.req.header(TOKEN_HEADER);
       const refresh = c.req.method === 'POST' && c.req.path === TOKEN_REFRESH_PATH;
       const ok =

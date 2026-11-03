@@ -27,6 +27,8 @@
     },
     "searchShortcut": "快捷鍵：{keys} 或 /",
     "workspaceNav": "工作區",
+    "densityCompact": "切換為緊湊檢視",
+    "densityLoose": "切換為寬鬆檢視",
     "language": "語言",
     "languageName": {
       "zh-TW": "中文（台灣）",
@@ -89,6 +91,7 @@
     "timeline": "時間順序",
     "filterByType": "類別篩選",
     "filterByStatus": "狀態篩選",
+    "filterByProject": "專案篩選",
     "type": {
       "all": "全部",
       "ops": "Ops",
@@ -172,9 +175,10 @@
     "titleTooLong": "最多 {n} 個字元。"
   },
   "personal": {
-    "intro": "個人專案沒有 Jira，改以 repo 分組；branch 名稱當作每個 session 的標籤。",
+    "intro": "個人專案 - 以repo分組",
     "repoMeta": "{n} sessions · 最後活動 {when}",
-    "noRepo": "不在 repo 內"
+    "noRepo": "不在 repo 內",
+    "allProjects": "全部專案"
   },
   "cleanup": {
     "title": "清理舊 session",

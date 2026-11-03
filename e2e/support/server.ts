@@ -50,18 +50,22 @@ const server = await start({
   launcher: {
     open: async (cwd, argv) => console.log(`[e2e] not launching ${argv.join(' ')} in ${cwd}`),
   },
-  // Never run claude -p from a test: one canned Jira title, every other key missing, and an
-  // empty inbox.
-  runner: {
-    run: async (req) => ({
-      ok: true,
-      data: (req.job === 'jira-inbox'
-        ? { syncedAt: new Date().toISOString(), items: [] }
-        : {
-            issues: [{ key: 'ACME-608', title: E2E_JIRA_TITLE, status: '[AM] DONE' }],
-            missing: [],
-          }) as never,
-    }),
+  // Never run claude -p from a test; with no inbox issues it is not called anyway.
+  runner: { run: async () => ({ ok: true, data: { items: [] } as never }) },
+  // Never reach Jira from a test: one canned title, every other key missing, an empty inbox.
+  jira: {
+    search: async ({ jql }) =>
+      jql.includes('ACME-608')
+        ? [
+            {
+              id: '608',
+              key: 'ACME-608',
+              fields: { summary: E2E_JIRA_TITLE, status: { name: '[AM] DONE' } },
+            },
+          ]
+        : [],
+    issue: async () => null,
+    myself: async () => ({ accountId: 'e2e', displayName: 'E2E' }),
   },
 });
 console.log(`[e2e] serving ${projectsRoot} at ${server.url}`);

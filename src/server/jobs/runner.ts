@@ -3,67 +3,18 @@ import { appendFile, mkdir } from 'node:fs/promises';
 import { z } from 'zod';
 import type { RunFailure } from '../../shared/api';
 
-const ROVO = 'mcp__claude_ai_Atlassian_Rovo__';
-
-/** The only tools a run may use: read-only Rovo lookups, approved by the user for T12 (ADR 0039)
- * and T13, which adds atlassianUserInfo so the inbox knows whose mentions to find (ADR 0042). */
-export const ALLOWED_TOOLS: readonly string[] = [
-  `${ROVO}getAccessibleAtlassianResources`,
-  `${ROVO}searchJiraIssuesUsingJql`,
-  `${ROVO}getJiraIssue`,
-  `${ROVO}atlassianUserInfo`,
-];
-
-/** Built-in tools, denied by name: `--tools` would hide the MCP tools too (ADR 0040). */
-const DENIED_BUILT_INS = [
-  'Agent',
-  'Bash',
-  'Edit',
-  'Glob',
-  'Grep',
-  'NotebookEdit',
-  'Read',
-  'Skill',
-  'Task',
-  'WebFetch',
-  'WebSearch',
-  'Write',
-];
-
-/** Built-ins and the Rovo tools that write. `dontAsk` already denies them; this is a second guard. */
-export const DENIED_TOOLS: readonly string[] = [
-  ...DENIED_BUILT_INS,
-  ...[
-    'addCommentToJiraIssue',
-    'addWorklogToJiraIssue',
-    'createCompassComponent',
-    'createCompassComponentRelationship',
-    'createCompassCustomFieldDefinition',
-    'createConfluenceFooterComment',
-    'createConfluenceInlineComment',
-    'createConfluencePage',
-    'createIssueLink',
-    'createJiraIssue',
-    'editJiraIssue',
-    'transitionJiraIssue',
-    'updateConfluencePage',
-  ].map((name) => ROVO + name),
-];
-
 /** Correct titles in every comparison run, at under half Opus's cost (ADR 0040). */
 export const DEFAULT_MODEL: RunnerModel = { model: 'claude-sonnet-5-5', effort: 'low' };
 
 export const RUN_TIMEOUT_MS = 120_000;
 
-/** Claude Code's cap on one MCP tool result (default 25,000 tokens). Past it the result is saved
- * under ~/.claude/projects and the model pages through it, reading only part (ADR 0042). A week
- * of inbox comments measured 142k characters; this fits it in one call. */
-export const MCP_OUTPUT_TOKENS = 60_000;
-
 /** Larger than any answer a job asks for; past this the run is killed. */
 const MAX_OUTPUT_BYTES = 5 * 1024 * 1024;
 
-/** The `claude -p` arguments for one run (spike Q8). Built as an array, never a shell string. */
+/** The `claude -p` arguments for one run (spike Q8). Built as an array, never a shell string.
+ * The server reads Jira itself, so a run gets no tools at all: `--tools ""` removes the built-ins
+ * and hides MCP tools (spike § 11), and `--strict-mcp-config` with no config starts no MCP server
+ * (ADR 0063). */
 export function runnerArgv(prompt: string, model: RunnerModel = DEFAULT_MODEL): string[] {
   return [
     '-p',
@@ -71,13 +22,12 @@ export function runnerArgv(prompt: string, model: RunnerModel = DEFAULT_MODEL): 
     '--no-session-persistence',
     '--output-format',
     'json',
-    // Anything not in --allowedTools is denied without a prompt.
+    '--tools',
+    '',
+    '--strict-mcp-config',
+    // A tool call that still slips through is denied without a prompt.
     '--permission-mode',
     'dontAsk',
-    '--allowedTools',
-    ALLOWED_TOOLS.join(','),
-    '--disallowedTools',
-    DENIED_TOOLS.join(','),
     '--model',
     model.model,
     '--effort',
@@ -107,10 +57,17 @@ const Outer = z.looseObject({
 });
 type Outer = z.infer<typeof Outer>;
 
-/** What every job's prompt asks Claude to answer when a Rovo tool says it is not logged in. */
-const AuthRequired = z.object({ authRequired: z.literal(true) });
+/** Where the answer broke the schema, e.g. "items.4.assignee: Invalid input: …". Paths and zod
+ * messages only, never the answer's values. */
+function schemaIssues(error: z.ZodError): string {
+  const shown = error.issues
+    .slice(0, 3)
+    .map((i) => `${i.path.length ? i.path.join('.') : '(root)'}: ${i.message}`);
+  const more = error.issues.length - shown.length;
+  return shown.join('; ') + (more > 0 ? `; +${more} more` : '');
+}
 
-// Fallback for an error result that never reached the prompt's answer (unverified wording).
+// Claude Code's own login (claude.ai) failing; the wording is unverified.
 const AUTH_WORDS =
   /\b(unauthori[sz]ed|unauthenticated|not authenticated|authenticat\w* (required|failed|error)|re-?authenticate|log ?in (required|needed)|401)\b/i;
 
@@ -205,7 +162,7 @@ function collect(child: ChildProcess, timeoutMs: number): Promise<Exit> {
 }
 
 /** Headless runner (spec § Data sources). Runs write no transcript and store no token: Claude Code
- * keeps the Rovo login itself. */
+ * keeps its own login. */
 export function createRunner(opts: RunnerOptions): Runner {
   const spawn = opts.spawn ?? nodeSpawn;
   const now = opts.now ?? (() => new Date());
@@ -255,7 +212,6 @@ export function createRunner(opts: RunnerOptions): Runner {
         cwd: opts.cwd,
         // Ignored stdin: otherwise -p waits 3 s for input (spike Q8).
         stdio: ['ignore', 'pipe', 'pipe'],
-        env: { ...process.env, MAX_MCP_OUTPUT_TOKENS: String(MCP_OUTPUT_TOKENS) },
       }),
       timeoutMs,
     );
@@ -300,14 +256,11 @@ export function createRunner(opts: RunnerOptions): Runner {
     } catch (err) {
       return finish({ ok: false, reason: 'invalid' }, (err as Error).message, outer);
     }
-    if (AuthRequired.safeParse(answer).success) {
-      return finish({ ok: false, reason: 'auth' }, 'Rovo login needed', outer);
-    }
     const parsed = req.schema.safeParse(answer);
     if (!parsed.success) {
       return finish(
         { ok: false, reason: 'invalid' },
-        `answer does not match the schema (${parsed.error.issues[0]?.message})`,
+        `answer does not match the schema (${schemaIssues(parsed.error)})`,
         outer,
       );
     }

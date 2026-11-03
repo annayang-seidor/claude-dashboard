@@ -60,3 +60,5 @@
 | [0059](0059-terminal-adapters-tab-then-window.md) | Terminals plug in as adapters behind `Launcher`; a tab when the terminal can, else one new window, never keystrokes | Accepted | terminal spike |
 | [0060](0060-config-read-once-invalid-fails-start.md) | Config is read once at start; an invalid file stops the server; every key has a default; nested objects merge; prodEnvs dropped; commented .jsonc example | Proposed | T17b |
 | [0061](0061-workspace-list-kind-fallback-config-route.md) | Workspaces are a configured list with a kind and one fallback; the page reads its config from GET /api/config | Proposed | T17b |
+| [0062](0062-jira-oauth-3lo-rest-replaces-rovo.md) | Jira is read through the REST API with the user's own Atlassian OAuth app; the login is a mode-600 file; the callback skips the token check behind a one-time state | Accepted | Jira OAuth |
+| [0063](0063-jira-jobs-read-rest-claude-classifies-without-tools.md) | The Jira jobs read Jira through REST; titles need no Claude; the inbox sends Claude a digest with no tools | Accepted | Jira OAuth |

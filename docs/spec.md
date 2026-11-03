@@ -181,14 +181,14 @@ Every UI element reads from one of five sources; the dashboard itself stores onl
 | Session title | Dashboard state file, then `custom-title` / `ai-title` records in the session JSONL | Read locally; renames written to the state file only | On page load + file watch |
 | Session list, times, working directory, branch | Claude Code session files under `~/.claude/projects/` | Read locally by the server | On page load + file watch |
 | Ticket key | Git branch name | Parse `<prefix>/<KEY>-…` | With session list |
-| Jira title, inbox, FYI | Jira via Claude Code (Rovo) in headless mode | Scheduled `claude -p` job returning structured JSON | On open, then every 30–60 min |
+| Jira title, inbox, FYI | Jira Cloud REST with the user's OAuth app (ADR 0062) | Titles read directly; the inbox digest is classified by a tool-less `claude -p` returning structured JSON (ADR 0063) | On open, then every 30–60 min |
 | Stage dots, "PR needs fixes" | GitHub (PR state, reviews, checks) | Claude Code or GitHub CLI | With Jira sync |
 | Environment labels | hac `~/.hac/projects/*.toml` (ADR 0035) | Read and parse locally | On page load |
 | Status, bookmark | Dashboard state file | Local read/write | Instant |
 
 ### Jira sync job (structured output is required)
 
-The job asks Claude to find issues assigned to, reported by or watched by the user that changed in the last 2 days, plus issues updated in the past week with a comment mentioning the user, and to classify each one. Output must be a single JSON object:
+The server searches Jira for issues assigned to, reported by or watched by the user that changed in the last 2 days, plus issues updated in the past 3 days with a comment by someone else mentioning the user, and asks Claude, with no tools, to classify each one (ADR 0063). The stored result is a single JSON object:
 
 ```json
 {
@@ -234,7 +234,7 @@ The dashboard reads and opens; it never acts on Jira, GitHub or a cloud environm
 
 - **No one-click side effects.** Reply, Resume and New session only open a Claude Code session. Posting comments, editing PRs, ImpEx, Groovy and deploys happen inside that session, where each step is confirmed.
 - **Production is read-only.** hac-cli enforces this; its maintainer owns the guard (ADR 0033). The dashboard never runs hac commands. The `[P1]` tag is styled to stand out so prod sessions are never mistaken for S1.
-- **No stored tokens for Jira.** The Jira sync reuses Claude Code's existing Rovo login. If GitHub needs a token, it lives in the OS keychain, never in the state file or the repo.
+- **Jira login in one owner-only file.** The Jira sync reads Jira through the REST API with the user's own Atlassian OAuth app, read-only scopes (ADR 0062). The app's id and secret are in the repo's `.env`, which git ignores; the access and refresh tokens are in `~/.claude-dashboard/jira-oauth.json`, mode 600, never in the state file or the repo. If GitHub needs a token, it lives in the OS keychain.
 - **Local only.** The server binds to `127.0.0.1`, with no remote access.
 - **Deletion is reversible for a short time.** Single and bulk deletes both offer Undo before files are removed.
 - **Company policy check** before first use at work: running a local server that reads work sessions and Jira data.
@@ -275,7 +275,7 @@ Accepted from the review (`CLAUDE.md`). Items marked *spike* were changed or con
 - **Mentions cover 3 days, not a week** (Oct 24, T13): the Jira search returns each issue's whole comment history, and a week of it was too large for one tool result ([ADR 0042](decisions/0042-jira-inbox-window-allow-list-sync-state.md)).
 - **"Next ›" dropped from v0;** revisit after v2 with a SessionEnd hook.
 - **Stage dots hidden until v3.**
-- **Security:** Host and Origin checks, an access token kept across restarts (Oct 24, ADR 0032; `--rotate-token` replaces it), UUID validation, no shell-string spawning.
+- **Security:** Host and Origin checks, an access token kept across restarts (Oct 24, ADR 0032; `--rotate-token` replaces it), UUID validation, no shell-string spawning. The Jira OAuth callback is the one `/api/` path without the token; a one-time `state` guards it (ADR 0062).
 - **Prod guard is out of scope** (Oct 24, ADR 0033): hac-cli's maintainer owns it.
 
 Rejected: searching the first 5 user prompts, and live-session detection.

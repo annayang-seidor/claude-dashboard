@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PersonalList } from './PersonalList';
 import { NOW, renderEn, session } from './testing';
@@ -79,11 +79,7 @@ const rowTitles = () =>
 describe('PersonalList', () => {
   it('shows the intro, repo groups newest first and sessions outside a repo last', () => {
     setup();
-    expect(
-      screen.getByText(
-        'Personal projects have no Jira, so sessions are grouped by repo and labeled by branch.',
-      ),
-    ).toBeTruthy();
+    expect(screen.getByText('Personal projects - grouped by repo')).toBeTruthy();
     expect(groupHeads()).toEqual([
       '~/o/claude-dashboard2 sessions · last active today',
       '~/o/blog1 sessions · last active 10/03',
@@ -122,6 +118,40 @@ describe('PersonalList', () => {
     cleanup();
     setup('main');
     expect(rowTitles()).toEqual([dashB.title, blog.title]);
+  });
+
+  it('filters by project chip, one at a time, with counts that ignore search and status', () => {
+    setup('main');
+    const chips = within(screen.getByRole('group', { name: 'Filter by project' }));
+    expect(chips.getAllByRole('button').map((b) => b.textContent)).toEqual([
+      'All projects 4',
+      'claude-dashboard 2',
+      'blog 1',
+      'Outside a repo 1',
+    ]);
+    expect(chips.getByRole('button', { name: /claude-dashboard/ }).title).toBe(
+      '~/o/claude-dashboard',
+    );
+    fireEvent.click(chips.getByRole('button', { name: /blog/ }));
+    expect(rowTitles()).toEqual([blog.title]);
+    expect(chips.getByRole('button', { name: /blog/ }).getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(chips.getByRole('button', { name: /claude-dashboard/ }));
+    expect(rowTitles()).toEqual([dashB.title]);
+    fireEvent.click(chips.getByRole('button', { name: /All projects/ }));
+    expect(rowTitles()).toEqual([dashB.title, blog.title]);
+  });
+
+  it('filters by status, with counts that follow the project', () => {
+    setup();
+    const pills = within(screen.getByRole('group', { name: 'Filter by status' }));
+    const counts = () => pills.getAllByRole('button').map((b) => b.textContent);
+    expect(counts()).toEqual(['All statuses 4', 'To do 3', 'Done 1', 'Bookmarked 0']);
+    fireEvent.click(pills.getByRole('button', { name: /Done/ }));
+    expect(rowTitles()).toEqual([dashB.title]);
+    const chips = within(screen.getByRole('group', { name: 'Filter by project' }));
+    fireEvent.click(chips.getByRole('button', { name: /blog/ }));
+    expect(counts()).toEqual(['All statuses 1', 'To do 1', 'Done 0', 'Bookmarked 0']);
+    expect(screen.getByText('No sessions here yet.')).toBeTruthy();
   });
 
   it('shows the empty state for a query with no match', () => {

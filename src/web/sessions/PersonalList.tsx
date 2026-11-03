@@ -1,16 +1,24 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { ApiSession } from '../../shared/api';
 import { Icon } from '../Icon';
 import { useI18n } from '../i18n';
 import {
   groupPersonal,
+  matchesProject,
   matchesQuery,
+  matchesStatus,
   normalizeQuery,
+  projectFilters,
   repoLabel,
+  statusCounts,
   viewGroups,
   type GroupView,
+  type ProjectChip,
+  type ProjectFilter,
+  type StatusFilter,
 } from './model';
 import { GroupRow, TrashNote, type OnEdit, type OnDelete, type OnResume } from './Row';
+import { StatusPills } from './StatusPills';
 import { whenLabels } from './time';
 import { useCollapsed } from './useCollapsed';
 
@@ -34,10 +42,19 @@ export function PersonalList({
   onCleanup,
 }: ListProps) {
   const { t } = useI18n();
+  const [picked, setProject] = useState<ProjectFilter>('all');
+  const [status, setStatus] = useState<StatusFilter>('all');
   const collapsed = useCollapsed();
   const q = normalizeQuery(query);
   const groups = useMemo(() => groupPersonal(sessions), [sessions]);
-  const views = viewGroups(groups, (s) => matchesQuery(s, q, {}, true));
+  const projects = projectFilters(sessions);
+  // A project whose last session went to the trash has no chip left: fall back to All.
+  const project = projects.some((p) => p.id === picked) ? picked : 'all';
+  const inProject = sessions.filter((s) => matchesProject(s, project));
+  const views = viewGroups(
+    groups,
+    (s) => matchesProject(s, project) && matchesStatus(s, status) && matchesQuery(s, q, {}, true),
+  );
 
   return (
     <div className="list list--personal">
@@ -47,6 +64,15 @@ export function PersonalList({
           <Icon name="scissors" size={14} />
           {t('list.cleanUp')}
         </button>
+      </div>
+      <div className="toolbar">
+        <ProjectChips
+          projects={projects}
+          total={sessions.length}
+          project={project}
+          onChange={setProject}
+        />
+        <StatusPills status={status} counts={statusCounts(inProject, 'all')} onChange={setStatus} />
       </div>
       {views.length === 0 && (
         <div className="empty">
@@ -65,6 +91,49 @@ export function PersonalList({
           onToggle={() => collapsed.toggle(v.group.id)}
         />
       ))}
+    </div>
+  );
+}
+
+/** One chip per repo group plus All, single choice, like the type chips on Work. */
+function ProjectChips({
+  projects,
+  total,
+  project,
+  onChange,
+}: {
+  projects: ProjectChip[];
+  total: number;
+  project: ProjectFilter;
+  onChange: (project: ProjectFilter) => void;
+}) {
+  const { t } = useI18n();
+  const chip = (id: string, label: string, count: number, title?: string, folder = true) => (
+    <button
+      key={id}
+      type="button"
+      className="chip"
+      aria-pressed={project === id}
+      title={title}
+      onClick={() => onChange(id)}
+    >
+      {folder ? (
+        <Icon name="folder" size={14} />
+      ) : (
+        <span className="chip__dot chip__dot--all" aria-hidden="true" />
+      )}
+      {label} <span className="chip__count">{count}</span>
+    </button>
+  );
+  return (
+    <div role="group" aria-label={t('list.filterByProject')} className="chips">
+      {chip('all', t('personal.allProjects'), total, undefined, false)}
+      {projects.map((p) =>
+        p.repo === null
+          ? chip(p.id, t('personal.noRepo'), p.count)
+          : // The folder name keeps the row short; the full path is the tooltip.
+            chip(p.id, p.repo.split('/').pop()!, p.count, repoLabel(p.repo)),
+      )}
     </div>
   );
 }

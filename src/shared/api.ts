@@ -170,5 +170,35 @@ export const JiraInboxResponse = z.object({
 });
 export type JiraInboxResponse = z.infer<typeof JiraInboxResponse>;
 
+/** GET /api/jira/oauth/status (ADR 0062). `configured`: the repo's .env names an Atlassian app.
+ * `site`: the Jira site the stored login is for. Tokens never leave the server. */
+export const JiraOAuthStatusResponse = z.object({
+  configured: z.boolean(),
+  connected: z.boolean(),
+  site: z.string().nullable(),
+});
+export type JiraOAuthStatusResponse = z.infer<typeof JiraOAuthStatusResponse>;
+
+/** POST /api/jira/oauth/start: the Atlassian consent page, with a new one-time `state`. */
+export const JiraOAuthStartResponse = z.object({ url: z.url() });
+export type JiraOAuthStartResponse = z.infer<typeof JiraOAuthStartResponse>;
+
+/** POST /api/jira/oauth/disconnect: the stored login is deleted. */
+export const JiraOAuthDisconnectResponse = z.object({ ok: z.literal(true) });
+export type JiraOAuthDisconnectResponse = z.infer<typeof JiraOAuthDisconnectResponse>;
+
+/** GET JIRA_OAUTH_CALLBACK_PATH: Atlassian's redirect. `error` instead of `code` when the user
+ * declined. */
+export const JiraOAuthCallbackQuery = z.object({
+  state: z.string().min(1).max(200),
+  code: z.string().min(1).max(4096).optional(),
+  error: z.string().max(200).optional(),
+});
+export type JiraOAuthCallbackQuery = z.infer<typeof JiraOAuthCallbackQuery>;
+
+/** `?result=` on JIRA_OAUTH_RESULT_PATH after the callback. */
+export const JiraOAuthResult = z.enum(['connected', 'denied', 'failed']);
+export type JiraOAuthResult = z.infer<typeof JiraOAuthResult>;
+
 /** SSE event name sent on /api/events when the session list may have changed. */
 export const SESSIONS_CHANGED = 'sessions-changed';

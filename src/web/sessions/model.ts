@@ -7,7 +7,7 @@ import { BUCKETS, bucketOf, type Bucket } from './time';
 export type TypeFilter = 'all' | Category;
 export type StatusFilter = 'all' | 'todo' | 'bookmarked' | 'done';
 export const TYPE_FILTERS: readonly TypeFilter[] = ['all', 'ops', 'ticket', 'scratch'];
-export const STATUS_FILTERS: readonly StatusFilter[] = ['all', 'todo', 'bookmarked', 'done'];
+export const STATUS_FILTERS: readonly StatusFilter[] = ['all', 'todo', 'done', 'bookmarked'];
 
 export interface Group {
   /** Stable id for collapse state and React keys. */
@@ -163,6 +163,29 @@ export function groupWork(sessions: readonly ApiSession[]): Group[] {
     g.branch = withBranch?.branch ?? null;
   }
   return [...opsGroups, ...ticketGroups, ...finish(scratch)];
+}
+
+/** A Personal session's project: its repo group's id, `repo:<path>` or `no-repo`. */
+export const projectOf = (s: ApiSession): string => (s.repo ? `repo:${s.repo}` : 'no-repo');
+
+/** `all`, or one project id from projectOf. */
+export type ProjectFilter = string;
+
+export function matchesProject(s: ApiSession, project: ProjectFilter): boolean {
+  return project === 'all' || projectOf(s) === project;
+}
+
+export interface ProjectChip {
+  id: string;
+  /** Null for sessions outside a repo. */
+  repo: string | null;
+  count: number;
+}
+
+/** One chip per Personal group, in group order; counts ignore search and status, as type chips
+ * do on Work. */
+export function projectFilters(sessions: readonly ApiSession[]): ProjectChip[] {
+  return groupPersonal(sessions).map((g) => ({ id: g.id, repo: g.repo, count: g.sessions.length }));
 }
 
 /** Personal: one group per repo (newest first), then one for sessions outside a repo. */
